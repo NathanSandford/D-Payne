@@ -6,6 +6,8 @@ Adapted from Kareem's binspec/utils.py.
 from __future__ import absolute_import, division, print_function # python2 compatibility
 import numpy as np
 
+D_PayneDir = '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne/'
+
 def read_in_neural_network(name = 'normalized_spectra'):
     '''
     read in the weights and biases parameterizing a particular neural network. 
@@ -50,35 +52,44 @@ def load_wavelength_array():
     '''
     read in the default wavelength grid onto which we interpolate all spectra
     '''
-    path = 'other_data/deimos_wavelength.npz'
+    path = D_PayneDir + 'other_data/deimos_wavelength.npz'
     tmp = np.load(path)
     wavelength = tmp['wavelength']
     tmp.close()
     return wavelength
 
+def load_wavelength_diff_matrix():
+    '''
+    read in matrix of distances between points in wavelength grid
+    '''
+    path = D_PayneDir + 'other_data/deimos_wavelength_diff.npz'
+    tmp = np.load(path)
+    wavelength_diff_matrix = tmp['wavelength_diff']
+    tmp.close()
+    return wavelength_diff_matrix
 
-#def load_cannon_contpixels():
-#    '''
-#    read in the default list of APOGEE pixels to use for continuum fitting.
-#    These are taken from Melissa Ness' work with the Cannon
-#    '''
-#    path = 'other_data/cannon_cont_pixels_apogee.npz'
-#    tmp = np.load(path)
-#    pixels_cannon = tmp['pixels_cannon']
-#    tmp.close()
-#    return pixels_cannon
+def interpolate_deimos_spectra(wave,spec,spec_err):
+    '''
+    interpolates a DEIMOS spectrum onto the default wavelength grid
+    '''
+    if len(wave) != 16250:
+        print('fixing wavelength...')
+        standard_grid = utils.load_wavelength_array()
+        spec = np.interp(standard_grid, wave, spec)
+        spec_err = np.interp(standard_grid, wave, spec_err)
+        wave = np.copy(standard_grid)
+    return(wave,spec,specerr)
 
-    
-#def load_visit_wavelength():
-#    '''
-#    Read in the normal wavelength grid (12288 pixels) for visit spectra. Note that
-#    this is different from the normal wavelength grid for combined spectra, which
-#    can be read in with spectral_model.load_wavelength_array()
-#    '''
-#    tmp = np.load('other_data/apogee_visit_wavelength.npz')
-#    wave = tmp['wave']
-#    tmp.close()
-#    return wave
+def load_deimos_cont_pixels():
+    '''
+    read in the default list of APOGEE pixels to use for continuum fitting.
+    These are taken from Melissa Ness' work with the Cannon
+    '''
+    path = D_PayneDir + 'other_data/deimos_cont_pixels.npz'
+    tmp = np.load(path)
+    cont_pixels = tmp['cont_pixels']
+    tmp.close()
+    return cont_pixels
 
 def doppler_shift(wavelength, flux, dv):
     '''
@@ -95,61 +106,53 @@ def doppler_shift(wavelength, flux, dv):
     new_flux = np.interp(new_wavelength, wavelength, flux)
     return new_flux
 
-def get_apogee_continuum(wavelength, spec, spec_err = None, cont_pixels = None):
+def get_deimos_continuum(spec, spec_err=None, wavelength = None,
+                         cont_pixels = None,
+                         wavelength_diff_matrix = None):
     '''
-    this is designed to give the same result as the normalization function from 
-    Jo Bovy's APOGEE package, but it's much faster. 
-    pixels with large uncertainty are weighted less in the fit. 
+    Approximate continuum as a smoothed version of the spectrum using only
+    continuum regions. This is modeled after the method used in Kirby et al. (2008).
     '''
-    if cont_pixels is None:
-        cont_pixels = load_cannon_contpixels()
-    cont = np.empty_like(spec)
     
-    deg = 4
-    
-    # if we haven't given any uncertainties, just assume they're the same everywhere. 
+    # Load standard DEIMOS wavelength grid
+    if wavelength is None:
+        print('Loading wavelength grid...')
+        wavelength = utils.load_wavelength_array()
+
+    # If no error given, assume 1 everywhere
     if spec_err is None:
-        spec_err = np.zeros(spec.shape[0]) + 0.0001
-    
-    # Rescale wavelengths
-    bluewav = 2*np.arange(2920)/2919 - 1
-    greenwav = 2*np.arange(2400)/2399 - 1
-    redwav = 2*np.arange(1894)/1893 - 1
-    
-    blue_pixels= cont_pixels[:2920]
-    green_pixels= cont_pixels[2920:5320]
-    red_pixels= cont_pixels[5320:]
-    
-    # blue
-    cont[:2920]= _fit_cannonpixels(bluewav, spec[:2920], spec_err[:2920],
-                        deg, blue_pixels)
-    # green 
-    cont[2920:5320]= _fit_cannonpixels(greenwav, spec[2920:5320], spec_err[2920:5320],
-                        deg, green_pixels)
-    # red
-    cont[5320:]= _fit_cannonpixels(redwav, spec[5320:], spec_err[5320:], deg, red_pixels)
-    return cont
+        print('No errors given, assuming all are equal')
+        spec_err = np.ones(len(wavelength))
 
-def _fit_cannonpixels(wav, spec, specerr, deg, cont_pixels):
-    '''
-    Fit the continuum to a set of continuum pixels
-    helper function for get_apogee_continuum()
-    '''
-    chpoly = np.polynomial.Chebyshev.fit(wav[cont_pixels], spec[cont_pixels],
-                deg, w=1./specerr[cont_pixels])
-    return chpoly(wav)
+    # Load continuum regions
+    if cont_pixels is None:
+        print('Loading continuum regions...')
+        cont_pixels = utils.load_deimos_cont_pixels()
+    m = np.zeros(len(wavelength))
+    m[cont_pixels] = 1
 
-#def unstitch_model_spectra(model_spec, wavelength):
-#    '''
-#    for undoing concatenation of spectra from different visits
-#    '''
-#    all_model_specs = []
-#    npix = int(len(wavelength))
-#    assert(len(model_spec) % npix == 0)
-#    nspec = int(len(model_spec)/npix)
-#    for j in range(nspec):
-#        all_model_specs.append(model_spec[j*npix:(j+1)*npix])
-#    return all_model_specs
+    # Load / Calculate matix of distances between wavelengths
+    if wavelength_diff_matrix is None:
+        try:
+            print('Loading wavelength difference matrix...')
+            wavelength_diff_matrix = utils.load_wavelength_diff_matrix()
+        except FileNotFoundError:
+            print('No wavelength difference matrix found.')
+            print('Calculating wavelength difference matrix...')
+            wavelength_diff_matrix = wavelength[:,np.newaxis] - wavelength
+
+    # Calculates weights / smoothing kernel
+    print('Calculating weights...')
+    w = m * spec_err * np.exp(-np.power(wavelength_diff_matrix/10,2) / 2 )
+
+    # Continuum Spectrum (Kirby+ 2008 Eq. 2)
+    print('Calculating continuum...')
+    num = np.sum(spec * w,axis=1)
+    den = np.sum(w,axis=1)
+    cont_spec = num/den
+    
+    print('Continuum calculation complete!')
+    return cont_spec
 
 def get_chi2_difference(norm_spec, spec_err, norm_model_A, norm_model_B):
     '''

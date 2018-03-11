@@ -17,7 +17,7 @@ import numpy as np
 from scipy import sparse
 from scipy.stats import norm
 from scipy import interpolate
-from multiprocessing import Pool
+import multiprocessing
 import utils
 wavelength_template = utils.load_wavelength_array()
 
@@ -44,9 +44,9 @@ def sparsify_matrix(lsf):
             diagonals.append(lsf[offset:, ii])
     return sparse.diags(diagonals, offsets)
 
-R_res = 22500 # for apogee
-start_wavelength = 15001
-end_wavelength = 16999
+R_res = 5000 # for DEIMOS
+start_wavelength = wavelength_template[0] #6250
+end_wavelength = wavelength_template[-1] #9500
 
 # interpolation parameters. The interpolation resolution just needs to be 
 # significantly better than the final resolution of the wavelength grid
@@ -75,7 +75,7 @@ for i in range(len(wavelength_run)):
     this_scale = wavelength_tmp[i+R_range]/(R_res*2.355) # convert from FWHM to sigma. 
     this_kernel = norm.pdf(this_wl, scale = this_scale)*wl_res
     conv_matrix[i, :] = this_kernel
-conv_sparse = sparsify(conv_matrix)
+conv_sparse = sparsify_matrix(conv_matrix)
 
 def convolve_spectrum(c1):
     '''
@@ -90,11 +90,11 @@ def convolve_spectrum(c1):
     f_flux_1D = interpolate.interp1d(wavelength_run, convolved_flux)
 
     # return convolved spectrum
-    print('convolved spectrum number %d', c1)
+    print('convolved spectrum number %d' % c1)
     return f_flux_1D(wavelength_template)
 
 # convolve multiple spectra in parallel
-pool = Pool(multiprocessing.cpu_count())
+pool = multiprocessing.Pool(multiprocessing.cpu_count())
 spectra = pool.map(convolve_spectrum, range(spectra.shape[0]))
 
 # save the convolved spectra and their labels 
