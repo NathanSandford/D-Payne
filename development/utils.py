@@ -1,6 +1,6 @@
 '''
 A few low-level functions that are used throughout.
-Adapted from Kareem's binspec/utils.py.
+(Adapted from Kareem's binspec/utils.py.)
 '''
     
 from __future__ import absolute_import, division, print_function # python2 compatibility
@@ -68,17 +68,41 @@ def load_wavelength_diff_matrix():
     tmp.close()
     return wavelength_diff_matrix
 
-def interpolate_deimos_spectra(wave,spec,spec_err):
+def doppler_shift(wavelength, flux, dv):
     '''
-    interpolates a DEIMOS spectrum onto the default wavelength grid
+        dv is in km/s
+        We use the convention where a positive dv means the object is moving away.
+        
+        This linear interpolation is actually not that accurate, but is fine if you
+        only care about accuracy to the level of a few tenths of a km/s. If you care
+        about better accuracy, you can do better with spline interpolation.
+        '''
+    c = 2.99792458e5 # km/s
+    doppler_factor = np.sqrt((1 - dv/c)/(1 + dv/c))
+    new_wavelength = wavelength * doppler_factor
+    new_flux = np.interp(new_wavelength, wavelength, flux)
+    return new_flux
+
+def get_continuum_pixels(wavelength,normalized_spectra):
     '''
-    if len(wave) != 16250:
-        print('fixing wavelength...')
-        standard_grid = utils.load_wavelength_array()
-        spec = np.interp(standard_grid, wave, spec)
-        spec_err = np.interp(standard_grid, wave, spec_err)
-        wave = np.copy(standard_grid)
-    return(wave,spec,specerr)
+    Finds continuum pixels on the standard wavelength grid by identifying continuum
+    regions in a normalized spectrum.
+    '''
+    # Load standard DEIMOS wavelength grid
+    wavelength_template = load_wavelength_array()
+    
+    # Identify continuum region in normalized spectrum
+    temp = np.zeros(len(wavelength))
+    temp[normalized_spectra > 0.995] = 1
+    n = np.zeros(len(wavelength))
+    for i, item in enumerate(wavelength):
+        n[i] = np.floor(np.average(temp[(wavelength > item - 0.25) & (wavelength < item + 0.25)]))
+    cont_reg = interpolate.interp1d(wavelength, n)
+
+    # Interpolate continuum regions onto standard wavelength grid
+    m = np.floor(cont_reg(wavelength_template))
+    cont_pixels = np.argwhere(m)
+    return(cont_pixels)
 
 def load_deimos_cont_pixels():
     '''
@@ -91,21 +115,6 @@ def load_deimos_cont_pixels():
     tmp.close()
     return cont_pixels
 
-def doppler_shift(wavelength, flux, dv):
-    '''
-    dv is in km/s
-    We use the convention where a positive dv means the object is moving away.
-    
-    This linear interpolation is actually not that accurate, but is fine if you 
-    only care about accuracy to the level of a few tenths of a km/s. If you care
-    about better accuracy, you can do better with spline interpolation. 
-    '''
-    c = 2.99792458e5 # km/s
-    doppler_factor = np.sqrt((1 - dv/c)/(1 + dv/c)) 
-    new_wavelength = wavelength * doppler_factor
-    new_flux = np.interp(new_wavelength, wavelength, flux)
-    return new_flux
-
 def get_deimos_continuum(spec, spec_err=None, wavelength = None,
                          cont_pixels = None,
                          wavelength_diff_matrix = None):
@@ -117,7 +126,7 @@ def get_deimos_continuum(spec, spec_err=None, wavelength = None,
     # Load standard DEIMOS wavelength grid
     if wavelength is None:
         print('Loading wavelength grid...')
-        wavelength = utils.load_wavelength_array()
+        wavelength = load_wavelength_array()
 
     # If no error given, assume 1 everywhere
     if spec_err is None:
@@ -127,7 +136,7 @@ def get_deimos_continuum(spec, spec_err=None, wavelength = None,
     # Load continuum regions
     if cont_pixels is None:
         print('Loading continuum regions...')
-        cont_pixels = utils.load_deimos_cont_pixels()
+        cont_pixels = load_deimos_cont_pixels()
     m = np.zeros(len(wavelength))
     m[cont_pixels] = 1
 
@@ -135,7 +144,7 @@ def get_deimos_continuum(spec, spec_err=None, wavelength = None,
     if wavelength_diff_matrix is None:
         try:
             print('Loading wavelength difference matrix...')
-            wavelength_diff_matrix = utils.load_wavelength_diff_matrix()
+            wavelength_diff_matrix = load_wavelength_diff_matrix()
         except FileNotFoundError:
             print('No wavelength difference matrix found.')
             print('Calculating wavelength difference matrix...')
