@@ -75,6 +75,7 @@ for num_go in range(num_start, num_end + 1):
     print('Making PyTorch variables (y_valid)...')
     y_valid = Variable(torch.from_numpy(y_valid),\
                    requires_grad=False).type(torch.FloatTensor)
+    print('Made all PyTorch variables!')
 
     #=============================================================================
     # loop over all pixels
