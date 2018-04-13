@@ -1,0 +1,27 @@
+#!/bin/bash
+#
+# Job name:
+#SBATCH --job-name=train_NN
+#
+# Account:
+#SBATCH --account=co_dweisz
+#
+# Partition:
+#SBATCH --partition=savio2
+#
+# QoS:
+#SBATCH --qos=dweisz_savio2_normal
+#
+# Wall clock limit:
+#SBATCH --time=24:00:00
+#
+#SBATCH --output=convolve_spectra.txt
+#
+# Email upon completion:
+#SBATCH --mail-type=END
+#SBATCH --mail-user=nathan_sandford@berkeley.edu
+#
+## Commands to run:
+
+module add python
+python $HOME/D-Payne/train_NNs/train_NN_new.py

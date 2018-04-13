@@ -33,6 +33,8 @@ print("Reading in synthetic spectra...")
 temp = np.load(SynthSpectraDir + FileName)
 wavelength = temp['wavelength'] # this is the R~300,000 wavelength, *not* our default grid.
 spectra = temp['spectra']
+continuum = temp['continuum']
+norm_spectra = spectra / continuum
 labels = temp['labels']
 model = temp['model']
 temp.close()
@@ -105,14 +107,32 @@ def convolve_spectrum(c1):
     print('convolved spectrum number %d' % c1)
     return f_flux_1D(wavelength_template)
 
+def convolve_norm_spectrum(c1):
+    '''
+    convolve a single spectrum. Pass this to multiprocessing. 
+    '''
+    # interpolate spectra into the convolution unit
+    f_flux_spec = interpolate.interp1d(wavelength, norm_spectra[c1,:])
+    full_spec = f_flux_spec(wavelength_run)
+    
+    # convolve spectrum
+    convolved_flux = conv_sparse.dot(full_spec)
+    f_flux_1D = interpolate.interp1d(wavelength_run, convolved_flux)
+
+    # return convolved spectrum
+    print('convolved spectrum number %d' % c1)
+    return f_flux_1D(wavelength_template)
+
 # convolve multiple spectra in parallel
 print("Convolving spectra...")
 pool = multiprocessing.Pool(multiprocessing.cpu_count())
 spectra = pool.map(convolve_spectrum, range(spectra.shape[0]))
+norm_spectra = pool.map(convolve_norm_spectrum, range(norm_spectra.shape[0]))
 
 # save the convolved spectra and their labels
 print("Saving Convolved spectra to %s" % ('convolved_'+FileName))
 np.savez(OutputDir + 'convolved_'+FileName,
-         spectra = spectra, wavelength = wavelength_template, labels = labels, model = model)
+         spectra = spectra, norm_spectra = norm_spectra,
+         wavelength = wavelength_template, labels = labels, model = model)
 
 print("Convolution completed!")
