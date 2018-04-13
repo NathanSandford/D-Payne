@@ -110,7 +110,6 @@ for num_go in range(num_start, num_end + 1):
         while count < 5:
             
             # training
-            print('Training... (Count = %i)' % count)
             y_pred = model(x)[:,0]
             loss = ((y_pred-y[:,pixel_no]).pow(2)/(0.01**2)).mean()
 
@@ -124,7 +123,7 @@ for num_go in range(num_start, num_end + 1):
             #=============================================================================
             # check convergence
             if t % 10000 == 0:
-                print('Checking convergence...')
+                print('Checking convergence... (Pixel #: %i/ Count = %i)' % (pixel_no,count))
                 if loss_valid > current_loss:
                     count += 1
                 else:
@@ -166,7 +165,7 @@ for num_go in range(num_start, num_end + 1):
 
     # save parameters and remember how we scale the labels
     print('Saving parameters for batch %i' % num_go)
-    np.savez("/data/ting/NN_results_" \
+    np.savez("/global/home/users/nathan_sandford/D-Payne/neural_net/NN_results_" \
          + str(num_go) + ".npz",\
          w_array_0 = w_array_0,\
          w_array_1 = w_array_1,\
