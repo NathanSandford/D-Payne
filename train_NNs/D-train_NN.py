@@ -10,7 +10,7 @@ from multiprocessing import Pool
 #------------------------------------------------------------------------------
 num_CPU = multiprocessing.cpu_count()
 print('Number of CPU: %i' % num_CPU)
-pixel_batch_size = 10
+pixel_batch_size = 250
 print('Pixel batch size: %i' % pixel_batch_size)
 
 # set number of threads per CPU
@@ -94,8 +94,8 @@ for num_go in range(num_start, num_end + 1):
         )
 
         # define optimizer
-        print('Defining optimizer...')
         learning_rate = 0.001
+        print('Defining optimizer w/ learning rate: %.3f...' % learning_rate)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     
         #-----------------------------------------------------------------------------
@@ -136,7 +136,6 @@ for num_go in range(num_start, num_end + 1):
                 
             #-----------------------------------------------------------------------------
             # optimize
-            print('Optimizing...')
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -144,17 +143,17 @@ for num_go in range(num_start, num_end + 1):
          
         #-----------------------------------------------------------------------------
         # return parameters
-        print('Completed training on pixel %i' % pixel_no)
+        print('Completed training on pixel %i, batch %i' % (pixel_no,num_go))
         return model_numpy
 
     #=============================================================================
     # train in parallel
     pool = Pool(num_CPU)
     net_array = pool.map(train_pixel,range(num_pix))
-    print('Completed all training!')
+    print('Trained all pixels for batch %i!' % num_go)
 
     # extract parameters
-    print('Extracting parameters...')
+    print('Extracting parameters for batch %i...' % num_go)
     w_array_0 = np.array([net_array[i][0] for i in range(len(net_array))])
     b_array_0 = np.array([net_array[i][1] for i in range(len(net_array))])
     w_array_1 = np.array([net_array[i][2][0] for i in range(len(net_array))])
