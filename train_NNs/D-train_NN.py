@@ -114,7 +114,6 @@ for num_go in range(num_start, num_end + 1):
             loss = ((y_pred-y[:,pixel_no]).pow(2)/(0.01**2)).mean()
 
             # validation
-            print('Cross validating...')
             y_pred_valid = model(x_valid)[:,0]
             loss_valid = (((y_pred_valid-y_valid[:,pixel_no]).pow(2)\
                        /(0.01**2)).mean()).data[0]
@@ -165,7 +164,7 @@ for num_go in range(num_start, num_end + 1):
 
     # save parameters and remember how we scale the labels
     print('Saving parameters for batch %i' % num_go)
-    np.savez("/global/home/users/nathan_sandford/D-Payne/neural_net/NN_results_" \
+    np.savez("/global/home/users/nathan_sandford/D-Payne/neural_nets/NN_results_" \
          + str(num_go) + ".npz",\
          w_array_0 = w_array_0,\
          w_array_1 = w_array_1,\
