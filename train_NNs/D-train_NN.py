@@ -149,7 +149,9 @@ for num_go in range(num_start, num_end + 1):
 
     #=============================================================================
     # train in parallel
+    print('Initializing pool...')
     pool = Pool(num_CPU)
+    print('Beginning training in parallel!')
     net_array = pool.map(train_pixel,range(num_pix))
     print('Trained all pixels for batch %i!' % num_go)
 
