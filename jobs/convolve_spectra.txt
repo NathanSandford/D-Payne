@@ -1,5 +1,0 @@
-starting batch 0/0
-Restoring unnormalized synthetic spectra
-Scaling labels
-Making PyTorch variables
-slurmstepd: error: *** JOB 2867400 ON n0188.savio2 CANCELLED AT 2018-04-06T17:11:19 DUE TO TIME LIMIT ***

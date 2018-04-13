@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Job name:
-#SBATCH --job-name=train_NN
+#SBATCH --job-name=D-train_NN
 #
 # Account:
 #SBATCH --account=co_dweisz
@@ -13,9 +13,9 @@
 #SBATCH --qos=dweisz_savio2_normal
 #
 # Wall clock limit:
-#SBATCH --time=24:00:00
+#SBATCH --time=1:00:00
 #
-#SBATCH --output=convolve_spectra.txt
+#SBATCH --output=D-train_NN.txt
 #
 # Email upon completion:
 #SBATCH --mail-type=END
@@ -24,4 +24,4 @@
 ## Commands to run:
 
 module add python
-python $HOME/D-Payne/train_NNs/train_NN_new.py
+python $HOME/D-Payne/train_NNs/D-train_NN.py
