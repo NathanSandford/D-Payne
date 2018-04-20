@@ -84,7 +84,7 @@ def doppler_shift(wavelength, flux, dv):
     new_flux = np.interp(new_wavelength, wavelength, flux)
     return new_flux
 
-def get_continuum_pixels(wavelength,normalized_spectra):
+def get_continuum_pixels(wavelength,normalized_spectra,cut=0.96):
     '''
     Finds continuum pixels on the standard wavelength grid by identifying continuum
     regions in a normalized spectrum.
@@ -94,7 +94,7 @@ def get_continuum_pixels(wavelength,normalized_spectra):
     
     # Identify continuum region in normalized spectrum
     temp = np.zeros(len(wavelength))
-    temp[normalized_spectra > 0.96] = 1
+    temp[normalized_spectra > cut] = 1
     n = np.zeros(len(wavelength))
     for i, item in enumerate(wavelength):
         n[i] = np.floor(np.average(temp[(wavelength > item - 0.25) & (wavelength < item + 0.25)]))

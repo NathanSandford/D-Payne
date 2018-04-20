@@ -25,7 +25,8 @@ InputDir = '/global/home/users/nathan_sandford/D-Payne/spectra/synth_spectra/'
 TrainingSpectraFile = 'convolved_synthetic_spectra_kareem.npz'
 TrainingSpectra = np.load(InputDir+TrainingSpectraFile)
 n_spectra = len(TrainingSpectra['labels'])
-norm = True
+normalized = True
+perfect_normalization = False
 
 # size of training set. Anything over a few 100 should be OK for a small network
 # (see YST's paper), but it can't hurt to go larger if the training set is available. 
@@ -36,18 +37,21 @@ for num_go in range(num_start, num_end + 1):
     print('Starting batch %d/%d' % (num_go+1,num_end+1))
     #==============================================================================
     # restore training spectra
-    if norm == True:
-        print('Restoring normalized synthetic spectra...')
-        spec = 'norm_spectra'
-    else:
+    if normalized == False:
         print('Restoring unnormalized synthetic spectra...')
-        spec = 'spectra'
+        spec_key = 'spectra'
+    else if perfect_normalization == True:
+        print('Restoring perfectly normalized synthetic spectra...')
+        spec_key = 'norm_spectra1'
+    else if perfect_normalization == False:
+        print('Restoring imperfectly normalized synthetic spectra...')
+        spec_key = 'norm_spectra2'
     x = (TrainingSpectra["labels"])[:n_train,:]
-    y = TrainingSpectra[spec][:n_train, num_go*pixel_batch_size:(num_go+1)*pixel_batch_size]
+    y = TrainingSpectra[spec_key][:n_train, num_go*pixel_batch_size:(num_go+1)*pixel_batch_size]
     
     # and validation spectra
     x_valid = (TrainingSpectra["labels"])[n_train:(n_train+n_valid),:]
-    y_valid = TrainingSpectra[spec][n_train:(n_train+n_valid),num_go*pixel_batch_size:(num_go+1)*pixel_batch_size]
+    y_valid = TrainingSpectra[spec_key][n_train:(n_train+n_valid),num_go*pixel_batch_size:(num_go+1)*pixel_batch_size]
 
     # scale the labels
     print('Scaling labels...')
