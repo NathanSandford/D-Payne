@@ -17,8 +17,9 @@ print('Pixel batch size: %i' % pixel_batch_size)
 os.environ['OMP_NUM_THREADS']='{:d}'.format(1)
 
 # choose a testing batch
-#num_start, num_end = 0, 65
-num_start, num_end = 0, 4
+num_start = int(sys.argv[1])
+num_end = int(sys.argv[2])
+#num_start, num_end = 0, 64
 
 # restore training spectra
 InputDir = '/global/home/users/nathan_sandford/D-Payne/spectra/synth_spectra/'
@@ -33,6 +34,7 @@ n_train = np.int(np.floor(n_spectra * 4/5))
 n_valid = np.int(n_spectra - n_train)
 
 for num_go in range(num_start, num_end + 1):
+    print('========================================================================')
     print('Starting batch %d/%d' % (num_go+1,num_end+1))
     #==============================================================================
     # restore training spectra
@@ -144,7 +146,7 @@ for num_go in range(num_start, num_end + 1):
          
         #-----------------------------------------------------------------------------
         # return parameters
-        print('Completed training on pixel %i, batch %i' % (pixel_no,num_go))
+        print('Completed training on pixel %i, batch %i' % (pixel_no,num_go+1))
         return model_numpy
 
     #=============================================================================
@@ -153,10 +155,10 @@ for num_go in range(num_start, num_end + 1):
     pool = Pool(num_CPU)
     print('Beginning training in parallel!')
     net_array = pool.map(train_pixel,range(num_pix))
-    print('Trained all pixels for batch %i!' % num_go)
+    print('Trained all pixels for batch %i!' % (num_go+1))
 
     # extract parameters
-    print('Extracting parameters for batch %i...' % num_go)
+    print('Extracting parameters for batch %i...' % (num_go+1))
     w_array_0 = np.array([net_array[i][0] for i in range(len(net_array))])
     b_array_0 = np.array([net_array[i][1] for i in range(len(net_array))])
     w_array_1 = np.array([net_array[i][2][0] for i in range(len(net_array))])
@@ -165,7 +167,7 @@ for num_go in range(num_start, num_end + 1):
     b_array_2 = np.array([net_array[i][5][0] for i in range(len(net_array))])
 
     # save parameters and remember how we scale the labels
-    print('Saving parameters for batch %i' % num_go)
+    print('Saving parameters for batch %i' % (num_go+1))
     np.savez("/global/home/users/nathan_sandford/D-Payne/neural_nets/NN_results_" \
          + str(num_go) + ".npz",\
          w_array_0 = w_array_0,\
