@@ -6,7 +6,8 @@ A few low-level functions that are used throughout.
 from __future__ import absolute_import, division, print_function # python2 compatibility
 import numpy as np
 
-D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
+D_PayneDir = '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne/'
+#D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
 
 def read_in_neural_network(name = 'normalized_spectra'):
     '''
@@ -83,7 +84,7 @@ def doppler_shift(wavelength, flux, dv):
     new_flux = np.interp(new_wavelength, wavelength, flux)
     return new_flux
 
-def get_continuum_pixels(wavelength,normalized_spectra):
+def get_continuum_pixels(wavelength,normalized_spectra,cut=0.96):
     '''
     Finds continuum pixels on the standard wavelength grid by identifying continuum
     regions in a normalized spectrum.
@@ -93,7 +94,7 @@ def get_continuum_pixels(wavelength,normalized_spectra):
     
     # Identify continuum region in normalized spectrum
     temp = np.zeros(len(wavelength))
-    temp[normalized_spectra > 0.995] = 1
+    temp[normalized_spectra > cut] = 1
     n = np.zeros(len(wavelength))
     for i, item in enumerate(wavelength):
         n[i] = np.floor(np.average(temp[(wavelength > item - 0.25) & (wavelength < item + 0.25)]))
@@ -106,13 +107,10 @@ def get_continuum_pixels(wavelength,normalized_spectra):
 
 def load_deimos_cont_pixels():
     '''
-    read in the default list of APOGEE pixels to use for continuum fitting.
-    These are taken from Melissa Ness' work with the Cannon
+    read in the default list of DEIMOS pixels to use for continuum fitting.
     '''
-    path = D_PayneDir + 'other_data/deimos_cont_pixels.npz'
-    tmp = np.load(path)
-    cont_pixels = tmp['cont_pixels']
-    tmp.close()
+    path = D_PayneDir + 'other_data/deimos_cont_pixels.npy'
+    cont_pixels = np.load(path)
     return cont_pixels
 
 def get_deimos_continuum(spec, spec_err=None, wavelength = None,

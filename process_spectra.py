@@ -43,7 +43,10 @@ def get_deimos_spectra(Obj,method,InputDir = None):
     ivarB = ObjHDUL[method+'-B'].data['IVAR'][0]
     ivarR = ObjHDUL[method+'-R'].data['IVAR'][0]
     ivar = np.concatenate((ivarB,ivarR))
-    return (wave,spec,ivar)
+    
+    RA = ObjHDUL[method+'-B'].header['RA_OBJ']
+    Dec = ObjHDUL[method+'-B'].header['DEC_OBJ']
+    return (wave,spec,ivar,RA,Dec)
 
 def interpolate_deimos_spectra(wave,spec,spec_err):
     '''
@@ -66,9 +69,9 @@ ivar = np.empty((len(ObjList),len(wavelength_template)))
 # Process all spectra
 for i,Obj in enumerate(ObjList):
     ObjNumber[i] = Obj[14:-5]
-    wave_temp,spec_temp,ivar_temp = get_deimos_spectra(Obj=Obj,method=method,InputDir=InputDir)
+    wave_temp,spec_temp,ivar_temp,RA,Dec = get_deimos_spectra(Obj=Obj,method=method,InputDir=InputDir)
     wavelength[i],spec[i],ivar[i] = interpolate_deimos_spectra(wave=wave_temp,spec=spec_temp, spec_err=ivar_temp)
 
 # Save processed spectra
-np.savez(OutputDir+OutputFile,obj=ObjNumber,wavelength=wavelength,spec=spec,spec_err=ivar)
+np.savez(OutputDir+OutputFile,obj=ObjNumber,wavelength=wavelength,spec=spec,spec_err=ivar,RA=RA,Dec=Dec)
 
