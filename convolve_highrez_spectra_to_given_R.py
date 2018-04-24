@@ -25,7 +25,8 @@ wavelength_template = utils.load_wavelength_array()
 #D_PayneDir = '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne/'
 D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
 SynthSpectraDir = '/global/home/users/nathan_sandford/kurucz/synthetic_spectra/'
-FileName = 'synthetic_spectra_kareem.npz'
+FileName = 'synthetic_spectra_MIST.npz'
+#FileName = 'synthetic_spectra_kareem.npz'
 OutputDir = D_PayneDir + 'spectra/synth_spectra/'
 
 # restore spectra
