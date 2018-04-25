@@ -7,16 +7,17 @@ D_PayneDir = '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne
 #D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
 
 inputdir = D_PayneDir + '/spectra/synth_spectra/'
-specfile = 'convolved_synthetic_spectra_kareem.npz'
+specfile = 'convolved_synthetic_spectra_MIST.npz'
+#specfile = 'convolved_synthetic_spectra_kareem.npz'
 
 # Restore Spectra
 print("Reading in synthetic spectra...")
 temp = np.load(inputdir+specfile)
 spectra = temp['spectra']
 try:
-    norm_spectra1 = temp['norm_spectra1']
+    norm_spectra_true = temp['norm_spectra_true']
 except KeyError:
-    norm_spectra1 = temp['norm_spectra']
+    norm_spectra_true = temp['norm_spectra']
 wavelength = temp['wavelength']
 labels = temp['labels']
 model = temp['model']
@@ -39,12 +40,12 @@ def normalize_spectra(i):
     return(norm_spec)
 
 pool = multiprocessing.Pool(multiprocessing.cpu_count())
-norm_spectra2 = pool.map(normalize_spectra, range(spectra.shape[0]))
+norm_spectra_approx = pool.map(normalize_spectra, range(spectra.shape[0]))
 
 # save the convolved spectra and their labels
 print("Saving Normalized spectra to %s" % (specfile))
 np.savez(OutputDir + specfile,
-         spectra = spectra, norm_spectra1 = norm_spectra1, norm_spectra2 = norm_spectra2,
+         spectra = spectra, norm_spectra_true = norm_spectra_true, norm_spectra_approx = norm_spectra_approx,
          wavelength = wavelength, labels = labels, model = model)
 
 print("Normalization completed!")
