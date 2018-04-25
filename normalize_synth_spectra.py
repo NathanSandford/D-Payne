@@ -3,8 +3,8 @@ import utils
 import multiprocessing
 from multiprocessing import Pool
 
-D_PayneDir = '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne'
-#D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
+#D_PayneDir = '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne'
+D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
 
 inputdir = D_PayneDir + '/spectra/synth_spectra/'
 specfile = 'convolved_synthetic_spectra_MIST.npz'

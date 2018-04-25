@@ -1,27 +1,27 @@
 #!/bin/bash
 #
 # Job name:
-#SBATCH --job-name=convolve_spectra
+#SBATCH --job-name=normalize_synth_spectra
 #
 # Account:
 #SBATCH --account=co_dweisz
 #
 # Partition:
-#SBATCH --partition=savio_bigmem
+#SBATCH --partition=savio2
 #
 # QoS:
-#SBATCH --qos=low_prio
+#SBATCH --qos=dweisz_savio2_normal
 #
 # Wall clock limit:
 #SBATCH --time=0:05:00
 #
-#SBATCH --output=convolve_spectra.txt
+#SBATCH --output=normalize_synth_spectra.txt
 #
 # Email upon completion:
-#SBATCH --mail-type=ALL
+#SBATCH --mail-type=END
 #SBATCH --mail-user=nathan_sandford@berkeley.edu
 #
 ## Commands to run:
 
 module add python
-python $HOME/D-Payne/convolve_highrez_spectra_to_given_R.py
+python $HOME/D-Payne/normalize_synth_spectra.py
