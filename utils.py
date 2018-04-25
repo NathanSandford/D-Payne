@@ -5,6 +5,7 @@ A few low-level functions that are used throughout.
     
 from __future__ import absolute_import, division, print_function # python2 compatibility
 import numpy as np
+from scipy import interpolate
 
 #D_PayneDir = '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne/'
 D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
