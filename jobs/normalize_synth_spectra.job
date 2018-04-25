@@ -7,10 +7,10 @@
 #SBATCH --account=co_dweisz
 #
 # Partition:
-#SBATCH --partition=savio2
+#SBATCH --partition=savio_bigmem
 #
 # QoS:
-#SBATCH --qos=dweisz_savio2_normal
+#SBATCH --qos=savio_lowprio
 #
 # Wall clock limit:
 #SBATCH --time=0:05:00
@@ -18,7 +18,7 @@
 #SBATCH --output=normalize_synth_spectra.txt
 #
 # Email upon completion:
-#SBATCH --mail-type=END
+#SBATCH --mail-type=ALL
 #SBATCH --mail-user=nathan_sandford@berkeley.edu
 #
 ## Commands to run:
