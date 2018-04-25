@@ -7,18 +7,18 @@
 #SBATCH --account=co_dweisz
 #
 # Partition:
-#SBATCH --partition=savio2_bigmem
+#SBATCH --partition=savio_bigmem
 #
 # QoS:
-#SBATCH --qos=dweisz_bigmem2_normal
+#SBATCH --qos=low_prio
 #
 # Wall clock limit:
-#SBATCH --time=24:00:00
+#SBATCH --time=0:05:00
 #
-#SBATCH --output=convolve_spectra.txt
+#SBATCH --output=convolve_spectra_1.txt
 #
 # Email upon completion:
-#SBATCH --mail-type=END
+#SBATCH --mail-type=ALL
 #SBATCH --mail-user=nathan_sandford@berkeley.edu
 #
 ## Commands to run:
