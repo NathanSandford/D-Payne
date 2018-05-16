@@ -7,7 +7,6 @@ D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
 
 inputdir = D_PayneDir + '/spectra/synth_spectra/'
 specfile = 'convolved_synthetic_spectra_MIST.npz'
-# specfile = 'convolved_synthetic_spectra_kareem.npz'
 OutputDir = inputdir
 
 # Restore Spectra

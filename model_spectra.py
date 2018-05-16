@@ -15,9 +15,9 @@ cont_pixels = utils.load_deimos_cont_pixels()
 
 def sigmoid(z):
     '''
-        This is the activation function used by default in all our neural
-        networks.
-        '''
+    This is the activation function used by default in all our neural
+    networks.
+    '''
     return 1.0/(1.0 + np.exp(-z))
 
 
