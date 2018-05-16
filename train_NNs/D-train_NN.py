@@ -1,3 +1,9 @@
+'''
+Adapted from Kareem's
+binspec/train_NN/train_NNs/train_NN_spectral_model.py and
+Yuan-Sen's train-NN.py
+'''
+
 # import package
 import numpy as np
 import sys
@@ -7,53 +13,62 @@ from torch.autograd import Variable
 import multiprocessing
 from multiprocessing import Pool
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 num_CPU = multiprocessing.cpu_count()
 print('Number of CPU: %i' % num_CPU)
 pixel_batch_size = 250
 print('Pixel batch size: %i' % pixel_batch_size)
 
 # set number of threads per CPU
-os.environ['OMP_NUM_THREADS']='{:d}'.format(1)
+os.environ['OMP_NUM_THREADS'] = '{:d}'.format(1)
 
 # choose a testing batch
 num_start = int(sys.argv[1])
 num_end = int(sys.argv[2])
-#num_start, num_end = 0, 64
 
 # restore training spectra
-InputDir = '/global/home/users/nathan_sandford/D-Payne/spectra/synth_spectra/'
-TrainingSpectraFile = 'convolved_synthetic_spectra_kareem.npz'
+D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
+InputDir = D_PayneDir + 'spectra/synth_spectra/'
+TrainingSpectraFile = 'convolved_synthetic_spectra_MIST.npz'
 TrainingSpectra = np.load(InputDir+TrainingSpectraFile)
 n_spectra = len(TrainingSpectra['labels'])
 normalized = True
 perfect_normalization = False
 
-# size of training set. Anything over a few 100 should be OK for a small network
-# (see YST's paper), but it can't hurt to go larger if the training set is available. 
+'''
+Size of training set.
+Anything over a few 100 should be OK for a small network (see YST's paper),
+but it can't hurt to go larger if the training set is available.
+'''
 n_train = np.int(np.floor(n_spectra * 4/5))
 n_valid = np.int(n_spectra - n_train)
+train_ind = sorted(np.random.choice(n_spectra, n_train, replace=False))
+valid_ind = np.delete(np.arange(n_spectra), train_ind)
 
 for num_go in range(num_start, num_end + 1):
-    print('========================================================================')
-    print('Starting batch %d/%d' % (num_go+1,num_end+1))
-    #==============================================================================
+    print('==================================================================')
+    print('Starting batch %d/%d' % (num_go+1, num_end+1))
+    # =========================================================================
     # restore training spectra
-    if normalized == False:
+    if normalized is False:
         print('Restoring unnormalized synthetic spectra...')
         spec_key = 'spectra'
-    else if perfect_normalization == True:
+    elif perfect_normalization is True:
         print('Restoring perfectly normalized synthetic spectra...')
-        spec_key = 'norm_spectra1'
-    else if perfect_normalization == False:
+        spec_key = 'norm_spectra_true'
+    elif perfect_normalization is False:
         print('Restoring imperfectly normalized synthetic spectra...')
-        spec_key = 'norm_spectra2'
-    x = (TrainingSpectra["labels"])[:n_train,:]
-    y = TrainingSpectra[spec_key][:n_train, num_go*pixel_batch_size:(num_go+1)*pixel_batch_size]
-    
+        spec_key = 'norm_spectra_approx'
+    x = (TrainingSpectra["labels"])[train_ind, :]
+    y = TrainingSpectra[spec_key][train_ind,
+                                  num_go * pixel_batch_size:(num_go+1) *
+                                  pixel_batch_size]
+
     # and validation spectra
-    x_valid = (TrainingSpectra["labels"])[n_train:(n_train+n_valid),:]
-    y_valid = TrainingSpectra[spec_key][n_train:(n_train+n_valid),num_go*pixel_batch_size:(num_go+1)*pixel_batch_size]
+    x_valid = (TrainingSpectra["labels"])[valid_ind, :]
+    y_valid = TrainingSpectra[spec_key][valid_ind,
+                                        num_go * pixel_batch_size:(num_go+1) *
+                                        pixel_batch_size]
 
     # scale the labels
     print('Scaling labels...')
@@ -64,9 +79,10 @@ for num_go in range(num_start, num_end + 1):
 
     # if you've reached the last pixel in the spectrum
     if not len(y):
+        print('Reached the end of the spectrum!')
         continue
 
-    #-----------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # dimension of the input
     dim_in = x.shape[1]
     num_pix = y.shape[1]
@@ -75,21 +91,22 @@ for num_go in range(num_start, num_end + 1):
     print('Making PyTorch variables (x)...')
     x = Variable(torch.from_numpy(x)).type(torch.FloatTensor)
     print('Making PyTorch variables (y)...')
-    y = Variable(torch.from_numpy(y), requires_grad=False).type(torch.FloatTensor)
+    y = Variable(torch.from_numpy(y),
+                 requires_grad=False).type(torch.FloatTensor)
     print('Making PyTorch variables (x_valid)...')
     x_valid = Variable(torch.from_numpy(x_valid)).type(torch.FloatTensor)
     print('Making PyTorch variables (y_valid)...')
-    y_valid = Variable(torch.from_numpy(y_valid),\
-                   requires_grad=False).type(torch.FloatTensor)
+    y_valid = Variable(torch.from_numpy(y_valid),
+                       requires_grad=False).type(torch.FloatTensor)
     print('Made all PyTorch variables!')
 
-    #=============================================================================
+    # =======================================================================
     # loop over all pixels
     def train_pixel(pixel_no):
         '''
         to be fed to multiprocessing
         '''
-        import sys # just so you can print from multiprocessing
+
         # define neural network
         print('Defining neural network...')
         model = torch.nn.Sequential(
@@ -97,39 +114,39 @@ for num_go in range(num_start, num_end + 1):
             torch.nn.Sigmoid(),
             torch.nn.Linear(10, 1),
             torch.nn.Sigmoid(),
-            torch.nn.Linear(1,1)
+            torch.nn.Linear(1, 1)
         )
 
         # define optimizer
         learning_rate = 0.001
         print('Defining optimizer w/ learning rate: %.3f...' % learning_rate)
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    
-        #-----------------------------------------------------------------------------
+
+        # ---------------------------------------------------------------------------
         # convergence counter
         current_loss = np.inf
         count = 0
         t = 0
 
-        #-----------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
         # train the neural network
         print('Training neural network on pixel %i' % pixel_no)
         while count < 5:
-            
+
             # training
-            y_pred = model(x)[:,0]
-            loss = ((y_pred-y[:,pixel_no]).pow(2)/(0.01**2)).mean()
+            y_pred = model(x)[:, 0]
+            loss = ((y_pred-y[:, pixel_no]).pow(2)/(0.01**2)).mean()
 
             # validation
-            y_pred_valid = model(x_valid)[:,0]
-            loss_valid = (((y_pred_valid-y_valid[:,pixel_no]).pow(2)\
-                       /(0.01**2)).mean()).data[0]
+            y_pred_valid = model(x_valid)[:, 0]
+            loss_valid = (((y_pred_valid-y_valid[:, pixel_no]).pow(2) /
+                           (0.01**2)).mean()).data[0]
 
-        
-            #=============================================================================
+            # =======================================================================
             # check convergence
             if t % 10000 == 0:
-                print('Checking convergence... (Pixel #: %i/ Count = %i)' % (pixel_no,count))
+                print('Checking convergence... (Pixel #: %i/ Count = %i)' %
+                      (pixel_no, count))
                 if loss_valid > current_loss:
                     count += 1
                 else:
@@ -140,25 +157,26 @@ for num_go in range(num_start, num_end + 1):
                     model_numpy = []
                     for param in model.parameters():
                         model_numpy.append(param.data.numpy())
-                
-            #-----------------------------------------------------------------------------
+
+            # -----------------------------------------------------------------------
             # optimize
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             t += 1
-         
-        #-----------------------------------------------------------------------------
+
+        # ---------------------------------------------------------------------------
         # return parameters
-        print('Completed training on pixel %i, batch %i' % (pixel_no,num_go+1))
+        print('Completed training on pixel %i, batch %i' %
+              (pixel_no, num_go+1))
         return model_numpy
 
-    #=============================================================================
+    # ===============================================================================
     # train in parallel
     print('Initializing pool...')
     pool = Pool(num_CPU)
     print('Beginning training in parallel!')
-    net_array = pool.map(train_pixel,range(num_pix))
+    net_array = pool.map(train_pixel, range(num_pix))
     print('Trained all pixels for batch %i!' % (num_go+1))
 
     # extract parameters
@@ -172,13 +190,8 @@ for num_go in range(num_start, num_end + 1):
 
     # save parameters and remember how we scale the labels
     print('Saving parameters for batch %i' % (num_go+1))
-    np.savez("/global/home/users/nathan_sandford/D-Payne/neural_nets/NN_results_" \
-         + str(num_go) + ".npz",\
-         w_array_0 = w_array_0,\
-         w_array_1 = w_array_1,\
-         w_array_2 = w_array_2,\
-         b_array_0 = b_array_0,\
-         b_array_1 = b_array_1,\
-         b_array_2 = b_array_2,\
-         x_max=x_max,\
-         x_min=x_min)
+    num_go_str = '0'+str(num_go) if num_go < 10 else str(num_go)
+    np.savez(D_PayneDir + "neural_nets/NN_results_" + num_go_str + ".npz",
+             w_array_0=w_array_0, w_array_1=w_array_1, w_array_2=w_array_2,
+             b_array_0=b_array_0, b_array_1=b_array_1, b_array_2=b_array_2,
+             x_max=x_max, x_min=x_min)

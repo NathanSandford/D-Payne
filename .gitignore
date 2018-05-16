@@ -1,4 +1,4 @@
 development/.ipynb_checkpoints/
 __pycache__/
 jobs/*.txt
-spectra/synth_spectra/convolved_synthetic_spectra_MIST.npz
+spectra/synth_spectra/*.npz
