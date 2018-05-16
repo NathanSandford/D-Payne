@@ -10,12 +10,12 @@
 #SBATCH --partition=savio_bigmem
 #
 # QoS:
-#SBATCH --qos=low_prio
+#SBATCH --qos=savio_lowprio
 #
 # Wall clock limit:
-#SBATCH --time=0:05:00
+#SBATCH --time=00:05:00
 #
-#SBATCH --output=convolve_spectra_1.txt
+#SBATCH --output=convolve_spectra.txt
 #
 # Email upon completion:
 #SBATCH --mail-type=ALL

@@ -13,7 +13,7 @@
 #SBATCH --qos=dweisz_savio2_normal
 #
 # Wall clock limit:
-#SBATCH --time=05:00:00
+#SBATCH --time=24:00:00
 #
 #SBATCH --output=D-train_NN_0-9.txt
 #
