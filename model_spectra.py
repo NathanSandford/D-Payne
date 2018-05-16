@@ -26,6 +26,10 @@ def get_spectrum_from_neural_net(labels, NN_coeffs):
     Predict the rest-frame normalized spectrum of a single star.
     '''
 
+    # Extract radial velocity from labels
+    dv = labels[-1]
+    labels = labels[:-1]
+
     # Assuming your NN had two hidden layer:
     try:
         w_array_0, w_array_1, w_array_2, b_array_0, b_array_1, b_array_2, \
@@ -35,6 +39,7 @@ def get_spectrum_from_neural_net(labels, NN_coeffs):
     except ValueError:
         w_array_0, w_array_1, b_array_0, b_array_1, x_min, x_max = NN_coeffs
         n_hidden = 1
+
     scaled_labels = (labels - x_min)/(x_max - x_min) - 0.5
 
     if n_hidden == 1:
@@ -53,5 +58,9 @@ def get_spectrum_from_neural_net(labels, NN_coeffs):
         middle = sigmoid(np.sum(w_array_1 * inside, axis=1) + b_array_1)
         outside = w_array_2 * middle + b_array_2
     spectrum = outside
+
+    # Doppler shift spectrum
+    spectrum = utils.doppler_shift(wavelength=wavelength,
+                                   flux=spectrum, dv=dv)
 
     return spectrum

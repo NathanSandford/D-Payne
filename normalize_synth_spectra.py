@@ -2,7 +2,8 @@ import numpy as np
 import utils
 import multiprocessing
 
-# D_PayneDir = '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne'
+# D_PayneDir = \
+#    '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne'
 D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
 
 inputdir = D_PayneDir + '/spectra/synth_spectra/'

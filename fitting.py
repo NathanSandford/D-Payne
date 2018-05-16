@@ -27,7 +27,7 @@ def fit_normalized_spectrum_single_star_model(norm_spec, spec_err,
     converge on different solutions, it will pick the one with the lowest
     chi2.
     labels = [[alpha/Fe],[Mg/Fe],[Si/Fe],[S/Fe],[Ar/Fe],[Ca/Fe],[Ti/Fe],
-                [Fe/H],Teff,logg,vmacro,dv]
+                [Fe/H],Teff,logg,dv]
 
     returns:
     popt: the best-fit labels
@@ -40,7 +40,7 @@ def fit_normalized_spectrum_single_star_model(norm_spec, spec_err,
 
     def fit_func(dummy_variable, *labels):
         norm_spec = model_spectra.get_spectrum_from_neural_net(
-                                                        labels=labels[:-2],
+                                                        labels=labels,
                                                         NN_coeffs=NN_coeffs)
         return(norm_spec)
 
@@ -49,13 +49,13 @@ def fit_normalized_spectrum_single_star_model(norm_spec, spec_err,
     start with labels for a 'typical' RGB star.
     '''
     if p0 is None:
-        p0 = [0, -1.5, -1.5, -1.5, -1.5, -1.5, -1.5, -1.5, 4100, 0.5, 5.0, 0]
+        p0 = [0, -1.5, -1.5, -1.5, -1.5, -1.5, -1.5, -1.5, 4100, 0.5, 0]
 
     # don't allow the minimimizer outside Teff = [3000, 10000], etc.
     bounds = [[-5.0, -5.0, -5.0, -5.0, -5.0, -5.0, -5.0, -5.0,
-               3000, 0.0, 0.0, -100],
+               3000, 0.0, -100],
               [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5,
-               10000, 5.0, 45.0, 100]]
+               10000, 5.0, 100]]
 
     '''
     If we want to initialize many walkers
@@ -117,12 +117,10 @@ def generate_starting_guesses_to_initialze_optimizers(p0, bounds,
                                      min(upper[8], p0[8] + 500))
             logg = np.random.uniform(max(lower[9], p0[9] - 0.2),
                                      min(upper[9], p0[9] + 0.2))
-            vmac = np.random.uniform(max(lower[10], p0[10] - 10),
-                                     min(upper[10], p0[10] + 10))
-            dv = np.random.uniform(max(lower[11], p0[11] - vrange),
-                                   min(upper[11], p0[11] + vrange))
+            dv = np.random.uniform(max(lower[10], p0[10] - vrange),
+                                   min(upper[10], p0[10] + vrange))
             this_p0 = np.array([alpha, Mg, Si, S, Ar, Ca, Ti, feh,
-                                teff, logg, vmac, dv])
+                                teff, logg, dv])
             all_x0.append(this_p0)
 
     '''

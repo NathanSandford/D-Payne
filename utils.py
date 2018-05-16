@@ -8,8 +8,9 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from scipy import interpolate
 
-# D_PayneDir = '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne/'
-D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
+D_PayneDir = \
+    '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne/'
+# D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
 
 
 def read_in_neural_network(name='norm_spectra_approx'):
@@ -38,8 +39,9 @@ def read_in_neural_network(name='norm_spectra_approx'):
         b_array_2 = tmp["b_array_2"]
         x_min = tmp["x_min"]
         x_max = tmp["x_max"]
-        NN_coeffs = (w_array_0, w_array_1, w_array_2, b_array_0, b_array_1,
-                     b_array_2, x_min, x_max)
+        NN_coeffs = (w_array_0, w_array_1, w_array_2,
+                     b_array_0, b_array_1, b_array_2,
+                     x_min, x_max)
     except KeyError:
         w_array_0 = tmp["w_array_0"]
         w_array_1 = tmp["w_array_1"]
@@ -47,7 +49,9 @@ def read_in_neural_network(name='norm_spectra_approx'):
         b_array_1 = tmp["b_array_1"]
         x_min = tmp["x_min"]
         x_max = tmp["x_max"]
-        NN_coeffs = (w_array_0, w_array_1, b_array_0, b_array_1, x_min, x_max)
+        NN_coeffs = (w_array_0, w_array_1,
+                     b_array_0, b_array_1,
+                     x_min, x_max)
     tmp.close()
     return NN_coeffs
 
