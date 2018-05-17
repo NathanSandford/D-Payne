@@ -165,16 +165,46 @@ def get_deimos_continuum(spec, spec_err=None, wavelength=None,
 
     # Calculates weights / smoothing kernel
     print('Calculating weights...')
-    w = m * spec_err * np.exp(-np.power(wavelength_diff_matrix/10, 2) / 2)
+    w = m / spec_err * np.exp(-np.power(wavelength_diff_matrix / 10, 2) / 2)
 
     # Continuum Spectrum (Kirby+ 2008 Eq. 2)
     print('Calculating continuum...')
     num = np.sum(spec * w, axis=1)
     den = np.sum(w, axis=1)
-    cont_spec = num/den
+    cont_spec = num / den
 
     print('Continuum calculation complete!')
-    return cont_spec
+    return(cont_spec)
+
+
+def get_spectral_mask_dict(name='kirby_2008'):
+    if name == 'kirby_2008':
+        mask_dict = {'B band': [6864, 7020],
+                     'A band': [7591, 7703],
+                     'strong telluric asorption': [8225, 8265],
+                     'Ca I 6343': [6341, 6346],
+                     'Ca I 6362': [6356, 6365],
+                     'H alpha': [6559.797, 6565.797],
+                     'K I 7665': [7662, 7668],
+                     'V I 8116,8119 hyperfine structure': [8113, 8123],
+                     'poorly modeled absorption in Arcturus': [8317, 8330],
+                     'Ca II 8498': [8488.023, 8508.023],
+                     'Ca II 8542': [8525.091, 8561.091],
+                     'Ca II 8662': [8645.141, 8679.141],
+                     'Mg I 8807': [8804.756, 8809.756]}
+        return (mask_dict)
+    else:
+        print('No mask named %s' % name)
+
+
+def generate_mask_from_dict(**kwargs):
+    wavelength = load_wavelength_array()
+    mask = np.array([])
+    for key in kwargs:
+        lower, upper = kwargs[key]
+        temp_mask = np.where((wavelength > lower) & (wavelength < upper))
+        mask = np.append(mask, temp_mask)
+    return(mask.astype(int))
 
 
 def get_chi2_difference(norm_spec, spec_err, norm_model_A, norm_model_B):
@@ -184,6 +214,6 @@ def get_chi2_difference(norm_spec, spec_err, norm_model_A, norm_model_B):
     So e.g., if model A is more simple than model B (say, a single-star
         vs a binary model), one would expect this to be positive.
     '''
-    chi2_A = np.sum((norm_spec - norm_model_A)**2/spec_err**2)
-    chi2_B = np.sum((norm_spec - norm_model_B)**2/spec_err**2)
+    chi2_A = np.sum((norm_spec - norm_model_A)**2 / spec_err**2)
+    chi2_B = np.sum((norm_spec - norm_model_B)**2 / spec_err**2)
     return chi2_A - chi2_B
