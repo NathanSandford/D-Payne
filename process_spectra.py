@@ -38,7 +38,7 @@ InputDir = DEIMOSDir + 'U112/m15msk/m15msk/'
 # Input List of DEIMOS spectra to be processed for fitting
 InputList = InputDir + 'spec1d.m15msk.txt'
 # D-Payne Directory
-D_PayneDir = DEIMOSDir + 'D-Payne/'
+D_PayneDir = utils.D_PayneDir
 # Output directory for processed spectra
 OutputDir = D_PayneDir + 'spectra/M15/'
 # File containing processed spectra
