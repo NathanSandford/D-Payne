@@ -92,13 +92,6 @@ def interpolate_deimos_spectra(wave, spec, spec_err):
     return(wave, spec, spec_err)
 
 
-# Initialize Arrays
-# ObjNumber = np.empty(len(InputList), dtype='<U11')
-# wavelength = np.empty((len(InputList), len(wavelength_template)))
-# spec = np.empty((len(InputList), len(wavelength_template)))
-# ivar = np.empty((len(InputList), len(wavelength_template)))
-
-
 def process_deimos_spectra(i):
     '''
     Processes all spectra in InputList
@@ -115,7 +108,7 @@ def process_deimos_spectra(i):
                                    spec=spec_temp,
                                    spec_err=(ivar_temp**-1))
     print('Applying spectral mask for spectra #%s' % ObjNumber)
-    spec_err[mask] = 999.
+    spec_err[mask] = 1e16
     print('Normalizing spectra #%s' % ObjNumber)
     cont_spec = \
         utils.get_deimos_continuum(spec, spec_err=spec_err,
@@ -128,8 +121,9 @@ def process_deimos_spectra(i):
 
 print('Beginning processing of all spectra')
 pool = multiprocessing.Pool(multiprocessing.cpu_count())
-ObjNumber, wavelength, spec, spec_err, RA, Dec \
-    = pool.map(process_deimos_spectra, range(ObjList.shape[0]))
+temp = pool.map(process_deimos_spectra, range(ObjList.shape[0]))
+temp = list(zip(*temp))
+ObjNumber, wavelength, spec, spec_err, RA, Dec = temp
 print('Completed processing of all spectra')
 
 # Save processed spectra
