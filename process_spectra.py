@@ -123,16 +123,16 @@ def process_deimos_spectra(i):
                                    cont_pixels=cont_reg,
                                    wavelength_diff_matrix=wavelength_diff_matrix)
     spec = spec / cont_spec
-    return(ObjNumber, wavelength, spec, ivar, RA, Dec)
+    return(ObjNumber, wavelength, spec, spec_err, RA, Dec)
 
 
 print('Beginning processing of all spectra')
 pool = multiprocessing.Pool(multiprocessing.cpu_count())
-ObjNumber, wavelength, spec, ivar, RA, Dec \
+ObjNumber, wavelength, spec, spec_err, RA, Dec \
     = pool.map(process_deimos_spectra, range(ObjList.shape[0]))
 print('Completed processing of all spectra')
 
 # Save processed spectra
 print('Saving all processed spectra to %s' % OutputFile)
 np.savez(OutputDir + OutputFile, obj=ObjNumber, wavelength=wavelength,
-         spec=spec, spec_err=(ivar**-1), RA=RA, Dec=Dec)
+         spec=spec, spec_err=spec_err, RA=RA, Dec=Dec)
