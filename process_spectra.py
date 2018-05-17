@@ -24,8 +24,17 @@ Which method of fitting the DEIMOS spectrum do you want to use:
 method = 'Horne'
 
 # Directory reduced DEIMOS spectra reside in
+# ===================================================================================
+'''
+# Nathan's Laptop
 DEIMOSDir = '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/'
 InputDir = DEIMOSDir + 'U112/m15msk/'
+'''
+# BRC
+DEIMOSDir = '/global/scratch/nathan_sandford/DEIMOS/'
+InputDir = DEIMOSDir + 'U112/m15msk/m15msk/'
+# '''
+# ===================================================================================
 # Input List of DEIMOS spectra to be processed for fitting
 InputList = InputDir + 'spec1d.m15msk.txt'
 # D-Payne Directory
@@ -121,7 +130,7 @@ def process_deimos_spectra(i):
 
 print('Beginning processing of all spectra')
 pool = multiprocessing.Pool(multiprocessing.cpu_count())
-temp = pool.map(process_deimos_spectra, range(ObjList.shape[0]))
+temp = pool.map(process_deimos_spectra, range(len(ObjList)))
 temp = list(zip(*temp))
 ObjNumber, wavelength, spec, spec_err, RA, Dec = temp
 print('Completed processing of all spectra')

@@ -8,9 +8,9 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from scipy import interpolate
 
-D_PayneDir = \
-    '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne/'
-# D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
+# D_PayneDir = \
+#     '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne/'
+D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
 
 
 def read_in_neural_network(name='norm_spectra_approx'):
