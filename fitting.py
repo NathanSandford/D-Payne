@@ -54,7 +54,7 @@ def fit_normalized_spectrum_single_star_model(norm_spec, spec_err,
     # don't allow the minimimizer outside Teff = [3000, 10000], etc.
     bounds = [[-5.0, -5.0, -5.0, -5.0, -5.0, -5.0, -5.0, -5.0,
                3000, 0.0, -200],
-              [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5,
+              [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 0.5,
                10000, 5.0, 200]]
 
     '''
@@ -64,7 +64,7 @@ def fit_normalized_spectrum_single_star_model(norm_spec, spec_err,
     all_x0 = generate_starting_guesses_to_initialze_optimizers(p0=p0,
                                                                bounds=bounds,
                                                                num_p0=num_p0,
-                                                               vrange=10)
+                                                               vrange=50)
 
     # run the optimizer
     popt, pcov, model_spec = fit_all_p0s(fit_func=fit_func,
