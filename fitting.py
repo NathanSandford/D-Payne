@@ -53,9 +53,9 @@ def fit_normalized_spectrum_single_star_model(norm_spec, spec_err,
 
     # don't allow the minimimizer outside Teff = [3000, 10000], etc.
     bounds = [[-5.0, -5.0, -5.0, -5.0, -5.0, -5.0, -5.0, -5.0,
-               3000, 0.0, -100],
+               3000, 0.0, -200],
               [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5,
-               10000, 5.0, 100]]
+               10000, 5.0, 200]]
 
     '''
     If we want to initialize many walkers
