@@ -193,6 +193,23 @@ def get_spectral_mask_dict(name='kirby_2008'):
                      'Ca II 8662': [8645.141, 8679.141],
                      'Mg I 8807': [8804.756, 8809.756]}
         return (mask_dict)
+    elif name == 'kirby_2008_telluric':
+        mask_dict = {'B band': [6864, 7020],
+                     'A band': [7591, 7703],
+                     'strong telluric asorption': [8225, 8265]}
+        return(mask_dict)
+    elif name == 'kirby_2008_stellar':
+        mask_dict = {'Ca I 6343': [6341, 6346],
+                     'Ca I 6362': [6356, 6365],
+                     'H alpha': [6559.797, 6565.797],
+                     'K I 7665': [7662, 7668],
+                     'V I 8116,8119 hyperfine structure': [8113, 8123],
+                     'poorly modeled absorption in Arcturus': [8317, 8330],
+                     'Ca II 8498': [8488.023, 8508.023],
+                     'Ca II 8542': [8525.091, 8561.091],
+                     'Ca II 8662': [8645.141, 8679.141],
+                     'Mg I 8807': [8804.756, 8809.756]}
+        return(mask_dict)
     else:
         print('No mask named %s' % name)
 
