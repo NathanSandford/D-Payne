@@ -1,0 +1,27 @@
+#!/bin/bash
+#
+# Job name:
+#SBATCH --job-name=process_spectra
+#
+# Account:
+#SBATCH --account=co_dweisz
+#
+# Partition:
+#SBATCH --partition=savio_bigmem
+#
+# QoS:
+#SBATCH --qos=savio_lowprio
+#
+# Wall clock limit:
+#SBATCH --time=05:00:00
+#
+#SBATCH --output=process_spectra.txt
+#
+# Email upon completion:
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=nathan_sandford@berkeley.edu
+#
+## Commands to run:
+
+module add python
+python $HOME/D-Payne/process_spectra.py
