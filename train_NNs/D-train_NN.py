@@ -36,6 +36,13 @@ normalized = True
 perfect_normalization = False
 
 '''
+Choose Labels.
+See combine_spectra.py for list of labels saved from Kurucz/Atlas12 models
+'''
+label_ind = [0, -3, -2, -1]  # [alpha/Fe], [Fe/H], Teff, logg
+labels = TrainingSpectra['labels'][:, label_ind]
+
+'''
 Size of training set.
 Anything over a few 100 should be OK for a small network (see YST's paper),
 but it can't hurt to go larger if the training set is available.
@@ -59,16 +66,18 @@ for num_go in range(num_start, num_end + 1):
     elif perfect_normalization is False:
         print('Restoring imperfectly normalized synthetic spectra...')
         spec_key = 'norm_spectra_approx'
-    x = (TrainingSpectra["labels"])[train_ind, :]
-    y = TrainingSpectra[spec_key][train_ind,
-                                  num_go * pixel_batch_size:(num_go+1) *
-                                  pixel_batch_size]
+    spec = TrainingSpectra[spec_key]
+
+    x = labels[train_ind, :]
+    y = spec[train_ind,
+             num_go * pixel_batch_size:(num_go+1) *
+             pixel_batch_size]
 
     # and validation spectra
-    x_valid = (TrainingSpectra["labels"])[valid_ind, :]
-    y_valid = TrainingSpectra[spec_key][valid_ind,
-                                        num_go * pixel_batch_size:(num_go+1) *
-                                        pixel_batch_size]
+    x_valid = labels[valid_ind, :]
+    y_valid = spec[valid_ind,
+                   num_go * pixel_batch_size:(num_go+1) *
+                   pixel_batch_size]
 
     # scale the labels
     print('Scaling labels...')
