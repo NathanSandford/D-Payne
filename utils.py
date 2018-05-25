@@ -8,9 +8,9 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from scipy import interpolate
 
-# D_PayneDir = \
-#     '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne/'
-D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
+D_PayneDir = \
+    '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne/'
+# D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
 
 
 def read_in_neural_network(name='norm_spectra_approx'):
@@ -222,6 +222,24 @@ def generate_mask_from_dict(**kwargs):
         temp_mask = np.where((wavelength > lower) & (wavelength < upper))
         mask = np.append(mask, temp_mask)
     return(mask.astype(int))
+
+
+def generate_mask_from_file(name):
+    if name[-4:] != '.npy':
+        filename = name + '.npy'
+    else:
+        filename = name
+
+    if name[:4] != 'mask':
+        filename = 'mask.' + filename
+    else:
+        filename = filename
+
+    try:
+        mask = np.load(D_PayneDir+'other_data/'+filename)
+        return(mask)
+    except FileNotFoundError:
+        print('No mask named %s' % name)
 
 
 def get_chi2_difference(norm_spec, spec_err, norm_model_A, norm_model_B):
