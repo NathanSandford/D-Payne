@@ -148,11 +148,11 @@ def fit_all_p0s(fit_func, norm_spec, spec_err, all_x0, bounds, tol=5e-4):
     for i, x0 in enumerate(all_x0):
         try:
             popt, pcov = curve_fit(fit_func, xdata=[], ydata=norm_spec,
-                                   sigma=spec_err, p0=x0,
+                                   sigma=np.sqrt(spec_err), p0=x0,
                                    bounds=bounds, ftol=tol, xtol=tol,
                                    absolute_sigma=True, method='trf')
             model_spec = fit_func([], *popt)
-            chi2 = np.sum((model_spec - norm_spec)**2/spec_err**2)
+            chi2 = np.sum((model_spec - norm_spec)**2/spec_err)
         # failed to converge (should not happen for a simple model)
         except RuntimeError:
             popt, pcov = x0, np.zeros((len(x0), len(x0)))
