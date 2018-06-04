@@ -67,13 +67,13 @@ def fit_normalized_spectrum_single_star_model(norm_spec, spec_err,
                                                                vrange=10)
 
     # run the optimizer
-    popt, pcov, lnlike, model_spec = fit_all_p0s(fit_func=fit_func,
+    popt, pcov, model_spec = fit_all_p0s(fit_func=fit_func,
                                          norm_spec=norm_spec,
                                          spec_err=spec_err,
                                          all_x0=all_x0,
                                          bounds=bounds,
                                          tol=tol)
-    return(popt, pcov, lnlike, model_spec)
+    return(popt, pcov, model_spec)
 
 
 def generate_starting_guesses_to_initialze_optimizers(p0, bounds,
@@ -168,5 +168,4 @@ def fit_all_p0s(fit_func, norm_spec, spec_err, all_x0, bounds, tol=5e-4):
     best = np.argmin(all_chi2)
     popt, pcov, model_spec = all_popt[best], all_pcov[best], \
         all_model_specs[best]
-    lnlike = -np.log(np.sum(((norm_spec-model_spec)/np.sqrt(spec_err))**2))
-    return(popt, pcov, lnlike, model_spec)
+    return(popt, pcov, model_spec)
