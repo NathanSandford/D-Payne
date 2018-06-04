@@ -109,10 +109,35 @@ for i in range(ndim):
     plt.plot(sampler.chain[:,:,i].T, '-', alpha=0.1)
     plt.savefig('chains_dim%i.png' %i)
 
-chain = sampler.get_chain()[:, :, 0].T
+chain = sampler.chain[:, :, 0].T
 fig = corner.corner(chain)
 plt.savefig('cornerplot.png')
 
+
+# Auto Correlation Function
+def next_pow_two(n):
+    i = 1
+    while i < n:
+        i = i << 1
+    return i
+
+
+def autocorr_func_1d(x, norm=True):
+    x = np.atleast_1d(x)
+    if len(x.shape) != 1:
+        raise ValueError("invalid dimensions for 1D autocorrelation function")
+    n = next_pow_two(len(x))
+
+    # Compute the FFT and then (from that) the auto-correlation function
+    f = np.fft.fft(x - np.mean(x), n=2*n)
+    acf = np.fft.ifft(f * np.conjugate(f))[:len(x)].real
+    acf /= 4*n
+
+    # Optionally normalize
+    if norm:
+        acf /= acf[0]
+
+    return acf
 
 
 # Automated windowing procedure following Sokal (1989)
