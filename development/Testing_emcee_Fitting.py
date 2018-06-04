@@ -97,18 +97,65 @@ def lnprob(labels, data_spec, data_err):
 
 # Initialize MCMC
 ndim = len(popt)
-nwalkers = 5000
+nwalkers = 128
 p0 = popt + 1e-2*np.random.uniform(low=-1.0, high=1.0, size=(nwalkers, ndim))  # Initialize at best fit from above
 
 # Run MCMC
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(norm_spec, spec_err))
-pos, prob, state = sampler.run_mcmc(p0,100)
+pos, prob, state = sampler.run_mcmc(p0,500000)
 
-# PLot MCMC Results
+# Plot MCMC Results
 for i in range(ndim):
     plt.plot(sampler.chain[:,:,i].T, '-', alpha=0.1)
     plt.savefig('chains_dim%i.png' %i)
 
-samples = sampler.chain[:,50:,:].reshape((-1,ndim))
-fig = corner.corner(samples)
+chain = sampler.get_chain()[:, :, 0].T
+fig = corner.corner(chain)
 plt.savefig('cornerplot.png')
+
+
+
+# Automated windowing procedure following Sokal (1989)
+def auto_window(taus, c):
+    m = np.arange(len(taus)) < c * taus
+    if np.any(m):
+        return np.argmin(m)
+    return len(taus) - 1
+
+
+# Following the suggestion from Goodman & Weare (2010)
+def autocorr_gw2010(y, c=5.0):
+    f = autocorr_func_1d(np.mean(y, axis=0))
+    taus = 2.0*np.cumsum(f)-1.0
+    window = auto_window(taus, c)
+    return taus[window]
+
+
+def autocorr_new(y, c=5.0):
+    f = np.zeros(y.shape[1])
+    for yy in y:
+        f += autocorr_func_1d(yy)
+    f /= len(y)
+    taus = 2.0*np.cumsum(f)-1.0
+    window = auto_window(taus, c)
+    return taus[window]
+
+
+# Compute the estimators for a few different chain lengths
+N = np.exp(np.linspace(np.log(100), np.log(chain.shape[1]), 10)).astype(int)
+gw2010 = np.empty(len(N))
+new = np.empty(len(N))
+for i, n in enumerate(N):
+    gw2010[i] = autocorr_gw2010(chain[:, :n])
+    new[i] = autocorr_new(chain[:, :n])
+
+# Plot the comparisons
+plt.loglog(N, gw2010, "o-", label="G\&W 2010")
+plt.loglog(N, new, "o-", label="new")
+ylim = plt.gca().get_ylim()
+plt.plot(N, N / 50.0, "--k", label=r"$\tau = N/50$")
+plt.ylim(ylim)
+plt.xlabel("number of samples, $N$")
+plt.ylabel(r"$\tau$ estimates")
+plt.legend(fontsize=14)
+plt.savefig('Auto_Correlation.png')
