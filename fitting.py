@@ -168,4 +168,5 @@ def fit_all_p0s(fit_func, norm_spec, spec_err, all_x0, bounds, tol=5e-4):
     best = np.argmin(all_chi2)
     popt, pcov, model_spec = all_popt[best], all_pcov[best], \
         all_model_specs[best]
-    return(popt, pcov, model_spec)
+    lnlike = -np.log(np.sum(((norm_spec-model_spec)/np.sqrt(spec_err))**2))
+    return(popt, pcov, lnlike, model_spec)
