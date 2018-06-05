@@ -101,7 +101,8 @@ nwalkers = 128
 p0 = popt + 1e-2*np.random.uniform(low=-1.0, high=1.0, size=(nwalkers, ndim))  # Initialize at best fit from above
 
 # Run MCMC
-sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(norm_spec, spec_err))
+sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
+                                args=(norm_spec, spec_err), threads=20)
 pos, prob, state = sampler.run_mcmc(p0,500000)
 
 # Plot MCMC Results
