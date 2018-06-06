@@ -111,11 +111,11 @@ pos, prob, state = sampler.run_mcmc(p0,500000)
 # Plot MCMC Results
 for i in range(ndim):
     plt.plot(sampler.chain[:,:,i].T, '-', alpha=0.1)
-    plt.savefig('chains_dim%i.png' %i)
+    plt.savefig('chains_dim%i_500000.png' %i)
 
 chain = sampler.chain[:, :, 0].T
 fig = corner.corner(chain)
-plt.savefig('cornerplot.png')
+plt.savefig('cornerplot_500000.png')
 
 
 # Auto Correlation Function
@@ -187,4 +187,4 @@ plt.ylim(ylim)
 plt.xlabel("number of samples, $N$")
 plt.ylabel(r"$\tau$ estimates")
 plt.legend(fontsize=14)
-plt.savefig('Auto_Correlation.png')
+plt.savefig('Auto_Correlation_500000.png')
