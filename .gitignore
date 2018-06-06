@@ -4,3 +4,4 @@ jobs/*.txt
 spectra/synth_spectra/*.npz
 spectra/obs_spectra/*.npz
 development/*.txt
+development/MCMC_plots/*
