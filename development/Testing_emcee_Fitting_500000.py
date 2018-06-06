@@ -4,6 +4,9 @@ from astropy.coordinates import SkyCoord
 import emcee
 from emcee import PTSampler
 
+import matplotlib.pyplot as plt
+import corner
+
 import utils
 import model_spectra as NN
 import fitting
