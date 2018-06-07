@@ -112,7 +112,7 @@ try: # If chain has already been run for a while
     previous_autocorr = np.load('/global/scratch/nathan_sandford/emcee/autocorr.npy')
     extension = np.zeros(nsteps // 100)
     autocorr = np.concatenate((previous_autocorr, extension))
-    previous_steps = np.len(backend.get_chain()[0])
+    previous_steps = len(backend.get_chain())
     p0 = backend.get_last_sample()[0]
     old_tau = backend.get_autocorr_time(tol=0)
     print('Loaded chain with %i steps run' % previous_steps)
@@ -123,7 +123,7 @@ except FileNotFoundError: # If chain is being run for the first time
     p0 = popt + 1e-2*np.random.uniform(low=-1.0, high=1.0, size=(nwalkers, ndim))  # Initialize at best fit from above
     old_tau = np.inf
     print('Initialized new chain')
-index = previous_steps
+index = previous_steps // 100
     
 
 
