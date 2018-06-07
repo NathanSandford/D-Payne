@@ -103,7 +103,7 @@ def lnprob(labels, data_spec, data_err):
 ndim = len(popt)
 nwalkers = 128
 
-filename = "'/global/scratch/nathan_sandford/emcee/chain.h5'"
+filename = '/global/scratch/nathan_sandford/emcee/chain.h5'
 backend = emcee.backends.HDFBackend(filename)
 
 try: # If chain has already been run for a while
