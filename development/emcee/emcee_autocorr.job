@@ -24,4 +24,4 @@
 ## Commands to run:
 
 module add python
-python $HOME/D-Payne/development/emcee/emcee_autocorr.py 1000
+python $HOME/D-Payne/development/emcee/emcee_autocorr.py 48000
