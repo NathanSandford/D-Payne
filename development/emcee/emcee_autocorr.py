@@ -109,7 +109,7 @@ index = 0
 autocorr = np.empty(nstep)
 old_tau = np.inf
 
-backend = emcee.backends.HDFBackend('chain.h5')
+backend = emcee.backends.HDFBackend('/global/scratch/nathan_sandford/emcee/chain.h5')
 backend.reset(nwalkers, ndim)
 
 # Run MCMC
