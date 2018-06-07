@@ -128,7 +128,7 @@ index = previous_steps
 
 
 with Pool() as pool:
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(norm_spec, spec_err), pool=pool)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(norm_spec, spec_err), backend=backend, pool=pool)
 
     for sample in sampler.sample(p0, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
