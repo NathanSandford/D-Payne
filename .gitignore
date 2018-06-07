@@ -5,3 +5,5 @@ spectra/synth_spectra/*.npz
 spectra/obs_spectra/*.npz
 development/*.txt
 development/MCMC_plots/*
+development/emcee/*.h5
+development/emcee/*.txt
