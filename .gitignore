@@ -7,3 +7,4 @@ development/*.txt
 development/MCMC_plots/*
 development/emcee/*.h5
 development/emcee/*.txt
+development/emcee/.ipynb_checkpoints/*
