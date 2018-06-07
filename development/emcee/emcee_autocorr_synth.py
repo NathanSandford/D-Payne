@@ -33,7 +33,7 @@ temp.close()
 # Select "Typical RGB" spectra
 j = 0
 real_labels = np.append(labels[j],0.0)
-real_spec = spectra
+real_spec = norm_spectra[j]
 
 # Add Noise
 data_spec = real_spec + 0.01 * np.random.randn(len(real_spec))
