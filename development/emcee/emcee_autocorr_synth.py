@@ -20,53 +20,40 @@ wavelength = utils.load_wavelength_array()
 # read in all individual neural networks we'll need.
 NN_coeffs = utils.read_in_neural_network(name='norm_spectra_approx')
 
-# Restore Observed spectra
+# Restore synthetic spectra from training set
 D_PayneDir = utils.D_PayneDir
-SpectraDir = D_PayneDir + 'spectra/obs_spectra/'
-SpectraFile = 'm15_Horne.npz'
+SpectraDir = D_PayneDir + 'spectra/synth_spectra/'
+SpectraFile = 'convolved_synthetic_spectra_MIST.npz'
 temp = np.load(SpectraDir + SpectraFile)
-obj = temp['obj']
-norm_spectra = temp['norm_spec']
-full_spectra = temp['spec']
-spectral_err = temp['spec_err']
-dv = temp['dv']
-RA_Dec = SkyCoord(temp['RA_Dec'])
+spectra = temp['spectra']
+norm_spectra = temp['norm_spectra_approx']
+labels = temp['labels']
 temp.close()
 
-# Standard Stars
-spec_ind = 8
-full_spec = full_spectra[spec_ind]
-norm_spec = norm_spectra[spec_ind]
-spec_err = spectral_err[spec_ind]
+# Select "Typical RGB" spectra
+n = [0]
+j = n[i]
+real_labels = np.append(labels[j],0.0)
+real_spec = spec
+
+# Add Noise
+data_spec = real_spec + 0.01 * np.random.randn(len(real_spec))
+spec_err = 0.01 * np.ones(len(real_spec))
 
 # kirby_2008_stellar = utils.get_spectral_mask_dict(name='kirby_2008_stellar')
 mask = utils.generate_mask_from_file(name='008.0010337')
 spec_err[mask] = 1e16
 masked_wavelength = wavelength[mask]
 
-matches = [8, 26]
-feh = [0.33, -1.26]
-alpha = [0.23, -0.36]
-Teff = [5663.6, 5650.5]
-logg = [4.3, 3.64]
-dv = [0.0, 0.0]
-
-i = 0
-alphafe = alpha[i] - feh[i]
-preal = np.array([alphafe, alpha[i], alpha[i], alpha[i], alpha[i], alpha[i], alpha[i],
-                  feh[i], Teff[i], logg[i], dv[i]])
-
-spec_ind = matches[i]
-full_spec = full_spectra[spec_ind]
-norm_spec = norm_spectra[spec_ind]
-spec_err = spectral_err[spec_ind]
-
+# Initial Guess
 p0 = [0, 0, 0, 0, 0, 0, 0, 0, 5000, 4, 0]
+
+# Fit spectrum
 popt, pcov, model_spec \
-    = fitting.fit_normalized_spectrum_single_star_model(norm_spec = norm_spec,
+    = fitting.fit_normalized_spectrum_single_star_model(norm_spec = data_spec,
                                                         spec_err = spec_err,
                                                         NN_coeffs = NN_coeffs,
-                                                        p0 = p0, num_p0 = 10)
+                                                        p0 = None, num_p0 = 1)
 
 # Define Likelihood function and priors
 def lnlike(labels, data_spec, data_err):
@@ -105,11 +92,11 @@ def lnprob(labels, data_spec, data_err):
 ndim = len(popt)
 nwalkers = 128
 
-filename = '/global/scratch/nathan_sandford/emcee/chain.h5'
+filename = '/global/scratch/nathan_sandford/emcee/chain_synth.h5'
 backend = emcee.backends.HDFBackend(filename)
 
 try: # If chain has already been run for a while
-    previous_autocorr = np.load('/global/scratch/nathan_sandford/emcee/autocorr.npy')
+    previous_autocorr = np.load('/global/scratch/nathan_sandford/emcee/autocorr_synth.npy')
     extension = np.zeros(nsteps // 100)
     autocorr = np.concatenate((previous_autocorr, extension))
     previous_steps = len(backend.get_chain())
@@ -124,11 +111,11 @@ except FileNotFoundError: # If chain is being run for the first time
     old_tau = np.inf
     print('Initialized new chain')
 index = previous_steps // 100
-    
+
 
 
 with Pool() as pool:
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(norm_spec, spec_err), backend=backend, pool=pool)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data_spec, spec_err), backend=backend, pool=pool)
 
     for sample in sampler.sample(p0, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
@@ -150,8 +137,8 @@ with Pool() as pool:
             break
         old_tau = tau
 
-np.save('/global/scratch/nathan_sandford/emcee/autocorr.npy', autocorr)
-os.system('cp /global/scratch/nathan_sandford/emcee/autocorr.npy '
-          + '/global/scratch/nathan_sandford/emcee/autocorr_%i.npy' % (previous_steps + nsteps))
+np.save('/global/scratch/nathan_sandford/emcee/autocorr_synth.npy', autocorr)
+os.system('cp /global/scratch/nathan_sandford/emcee/autocorr_synth.npy '
+          + '/global/scratch/nathan_sandford/emcee/autocorr_synth_%i.npy' % (previous_steps + nsteps))
 
 print('Now completed %i iterations' % (previous_steps + nsteps))
