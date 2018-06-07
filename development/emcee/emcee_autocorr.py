@@ -2,8 +2,7 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 import emcee
-import multiprocessing
-from multiprocessing import Pool
+from emcee import PTSampler
 
 import matplotlib.pyplot as plt
 import corner
@@ -102,75 +101,99 @@ def lnprob(labels, data_spec, data_err):
 # Initialize MCMC
 ndim = len(popt)
 nwalkers = 128
-nstep = 50000
-num_CPU = multiprocessing.cpu_count()
 p0 = popt + 1e-2*np.random.uniform(low=-1.0, high=1.0, size=(nwalkers, ndim))  # Initialize at best fit from above
+<<<<<<< HEAD
 index = 0
 autocorr = np.empty(nstep)
 old_tau = np.inf
 
 backend = emcee.backends.HDFBackend('/global/scratch/nathan_sandford/emcee/chain.h5')
 backend.reset(nwalkers, ndim)
+=======
+>>>>>>> 816bbaa9bcd13a5b08e3d42741159eebac100b9d
 
 # Run MCMC
-with Pool() as pool:
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(norm_spec, spec_err),
-                                    backend=backend, pool=pool)
+sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
+                                args=(norm_spec, spec_err), threads=20)
+pos, prob, state = sampler.run_mcmc(p0,500000)
 
-    for sample in sampler.sample(p0, iterations=nstep, progress=True):
-        # Only check convergence every 100 steps
-        if sampler.iteration % 100:
-            continue
+# Plot MCMC Results
+for i in range(ndim):
+    plt.plot(sampler.chain[:,:,i].T, '-', alpha=0.1)
+    plt.savefig('chains_dim%i_500000.png' %i)
 
-        # Compute the autocorrelation time so far
-        # Using tol=0 means that we'll always get an estimate even
-        # if it isn't trustworthy
-        tau = sampler.get_autocorr_time(tol=0)
-        autocorr[index] = np.mean(tau)
-        index += 1
-
-        # Check convergence
-        converged = np.all(tau * 100 < sampler.iteration)
-        converged &= np.all(np.abs(old_tau - tau) / tau < 0.01)
-        if converged:
-            break
-        old_tau = tau
+chain = sampler.chain[:, :, 0].T
+fig = corner.corner(chain)
+plt.savefig('cornerplot_500000.png')
 
 
-
-# Plot Autocorrelation
-n = 100*np.arange(1, index+1)
-y = autocorr[:index]
-plt.plot(n, n / 100.0, "--k")
-plt.plot(n, y)
-plt.xlim(0, n.max())
-plt.ylim(0, y.max() + 0.1*(y.max() - y.min()))
-plt.xlabel("number of steps")
-plt.ylabel(r"mean $\hat{\tau}$");
-plt.savefig('/global/scratch/nathan_sandford/emcee/AutoCorr_50000.png')
+# Auto Correlation Function
+def next_pow_two(n):
+    i = 1
+    while i < n:
+        i = i << 1
+    return i
 
 
+def autocorr_func_1d(x, norm=True):
+    x = np.atleast_1d(x)
+    if len(x.shape) != 1:
+        raise ValueError("invalid dimensions for 1D autocorrelation function")
+    n = next_pow_two(len(x))
 
-# Plot corner
-tau = sampler.get_autocorr_time()
-burnin = int(2*np.max(tau))
-thin = int(0.5*np.min(tau))
-samples = sampler.get_chain(discard=burnin, flat=True, thin=thin)
-log_prob_samples = sampler.get_log_prob(discard=burnin, flat=True, thin=thin)
-log_prior_samples = sampler.get_blobs(discard=burnin, flat=True, thin=thin)
+    # Compute the FFT and then (from that) the auto-correlation function
+    f = np.fft.fft(x - np.mean(x), n=2*n)
+    acf = np.fft.ifft(f * np.conjugate(f))[:len(x)].real
+    acf /= 4*n
 
-print("burn-in: {0}".format(burnin))
-print("thin: {0}".format(thin))
-print("flat chain shape: {0}".format(samples.shape))
-print("flat log prob shape: {0}".format(log_prob_samples.shape))
-print("flat log prior shape: {0}".format(log_prior_samples.shape))
+    # Optionally normalize
+    if norm:
+        acf /= acf[0]
 
-all_samples = np.concatenate((
-    samples, log_prob_samples[:, None], log_prior_samples[:, None]
-), axis=1)
+    return acf
 
-labels = list(map(r"$\theta_{{{0}}}$".format, range(1, ndim+1)))
-labels += ["log prob", "log prior"]
 
-fig = corner.corner(all_samples, labels=labels)
-fig.savefig('/global/scratch/nathan_sandford/emcee/Corner_50000.png')
+# Automated windowing procedure following Sokal (1989)
+def auto_window(taus, c):
+    m = np.arange(len(taus)) < c * taus
+    if np.any(m):
+        return np.argmin(m)
+    return len(taus) - 1
+
+
+# Following the suggestion from Goodman & Weare (2010)
+def autocorr_gw2010(y, c=5.0):
+    f = autocorr_func_1d(np.mean(y, axis=0))
+    taus = 2.0*np.cumsum(f)-1.0
+    window = auto_window(taus, c)
+    return taus[window]
+
+
+def autocorr_new(y, c=5.0):
+    f = np.zeros(y.shape[1])
+    for yy in y:
+        f += autocorr_func_1d(yy)
+    f /= len(y)
+    taus = 2.0*np.cumsum(f)-1.0
+    window = auto_window(taus, c)
+    return taus[window]
+
+
+# Compute the estimators for a few different chain lengths
+N = np.exp(np.linspace(np.log(100), np.log(chain.shape[1]), 10)).astype(int)
+gw2010 = np.empty(len(N))
+new = np.empty(len(N))
+for i, n in enumerate(N):
+    gw2010[i] = autocorr_gw2010(chain[:, :n])
+    new[i] = autocorr_new(chain[:, :n])
+
+# Plot the comparisons
+plt.loglog(N, gw2010, "o-", label="G\&W 2010")
+plt.loglog(N, new, "o-", label="new")
+ylim = plt.gca().get_ylim()
+plt.plot(N, N / 50.0, "--k", label=r"$\tau = N/50$")
+plt.ylim(ylim)
+plt.xlabel("number of samples, $N$")
+plt.ylabel(r"$\tau$ estimates")
+plt.legend(fontsize=14)
+plt.savefig('Auto_Correlation_500000.png')
