@@ -31,8 +31,7 @@ labels = temp['labels']
 temp.close()
 
 # Select "Typical RGB" spectra
-n = [0]
-j = n[i]
+j = 0
 real_labels = np.append(labels[j],0.0)
 real_spec = spec
 
