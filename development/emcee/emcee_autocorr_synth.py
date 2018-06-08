@@ -139,5 +139,7 @@ with Pool() as pool:
 np.save('/global/scratch/nathan_sandford/emcee/autocorr_synth.npy', autocorr)
 os.system('cp /global/scratch/nathan_sandford/emcee/autocorr_synth.npy '
           + '/global/scratch/nathan_sandford/emcee/autocorr_synth_%i.npy' % (previous_steps + nsteps))
+os.system('cp /global/scratch/nathan_sandford/emcee/chain_synth.h5 '
+          + '/global/scratch/nathan_sandford/emcee/chain_synth_%i.h5' % (previous_steps + nsteps))
 
 print('Now completed %i iterations' % (previous_steps + nsteps))

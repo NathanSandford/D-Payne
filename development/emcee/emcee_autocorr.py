@@ -44,24 +44,9 @@ mask = utils.generate_mask_from_file(name='008.0010337')
 spec_err[mask] = 1e16
 masked_wavelength = wavelength[mask]
 
-matches = [8, 26]
-feh = [0.33, -1.26]
-alpha = [0.23, -0.36]
-Teff = [5663.6, 5650.5]
-logg = [4.3, 3.64]
-dv = [0.0, 0.0]
-
-i = 0
-alphafe = alpha[i] - feh[i]
-preal = np.array([alphafe, alpha[i], alpha[i], alpha[i], alpha[i], alpha[i], alpha[i],
-                  feh[i], Teff[i], logg[i], dv[i]])
-
-spec_ind = matches[i]
-full_spec = full_spectra[spec_ind]
-norm_spec = norm_spectra[spec_ind]
-spec_err = spectral_err[spec_ind]
-
+# Initial Guess
 p0 = [0, 0, 0, 0, 0, 0, 0, 0, 5000, 4, 0]
+
 popt, pcov, model_spec \
     = fitting.fit_normalized_spectrum_single_star_model(norm_spec = norm_spec,
                                                         spec_err = spec_err,
@@ -124,7 +109,7 @@ except FileNotFoundError: # If chain is being run for the first time
     old_tau = np.inf
     print('Initialized new chain')
 index = previous_steps // 100
-    
+
 
 
 with Pool() as pool:
