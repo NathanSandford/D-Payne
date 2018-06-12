@@ -2,56 +2,88 @@ import numpy as np
 import utils
 import multiprocessing
 
-# D_PayneDir = \
-#    '/Users/Nathan/Documents/Berkeley/Chemical_Evolution/DEIMOS/D-Payne'
-D_PayneDir = '/global/home/users/nathan_sandford/D-Payne/'
+'''
+Print updates?
+'''
+verbose = False
 
+
+'''
+Set Directories
+'''
+D_PayneDir = utils.D_PayneDir
 inputdir = D_PayneDir + '/spectra/synth_spectra/'
 specfile = 'convolved_synthetic_spectra_MIST.npz'
 OutputDir = inputdir
 
-# Restore Spectra
-print("Reading in synthetic spectra...")
+
+'''
+Restore Spectra
+'''
+if verbose:
+    print("Reading in synthetic spectra...")
 temp = np.load(inputdir+specfile)
+# Unnormalized Spectra
 spectra = temp['spectra']
+# Normalized Spectra (from theoretical continuum)
 try:
     norm_spectra_true = temp['norm_spectra_true']
 except KeyError:
     norm_spectra_true = temp['norm_spectra']
+# Wavelength (should already be on DEIMOS grid)
 wavelength = temp['wavelength']
+# Labels: [alpha/Fe], [Mg/H], ..., [Fe/H], Teff, logg
 labels = temp['labels']
+# Model name from Kurucz/Atlas12 models
 model = temp['model']
 temp.close()
 
-# Restore DEIMOS continuum pixels
-print("Loading continuum region...")
+
+'''
+Restore DEIMOS continuum pixels
+'''
+if verbose:
+    print("Loading continuum region...")
 cont_reg = utils.load_deimos_cont_pixels()
 
-# Calculate matrix of distances between wavelengths
-print("Calculating distance matrix...")
+
+'''
+Calculate matrix of distances between wavelengths
+'''
+if verbose:
+    print("Calculating distance matrix...")
 wavelength_diff_matrix = wavelength[:, np.newaxis] - wavelength
 
 
 def normalize_spectra(i):
     cont_spectrum = \
-        utils.get_deimos_continuum(spectra[i], spec_err=None,
-                                   wavelength=wavelength,
-                                   cont_pixels=cont_reg,
-                                   wavelength_diff_matrix=wavelength_diff_matrix)
+      utils.get_deimos_continuum(spectra[i], spec_err=None,
+                                 wavelength=wavelength,
+                                 cont_pixels=cont_reg,
+                                 wavelength_diff_matrix=wavelength_diff_matrix)
     norm_spec = spectra[i] / cont_spectrum
-    print("Normalized spectrum number %d" % i)
+    if verbose:
+        print("Normalized spectrum number %d" % i)
     return(norm_spec)
 
 
+'''
+Normalize in Parallel
+'''
 pool = multiprocessing.Pool(multiprocessing.cpu_count())
 norm_spectra_approx = pool.map(normalize_spectra, range(spectra.shape[0]))
 
-# save the convolved spectra and their labels
-print("Saving Normalized spectra to %s" % (specfile))
+
+'''
+Save the convolved spectra and their labels
+'''
+if verbose:
+    print("Saving Normalized spectra to %s" % (specfile))
 np.savez(OutputDir + specfile,
          spectra=spectra,
          norm_spectra_true=norm_spectra_true,
          norm_spectra_approx=norm_spectra_approx,
          wavelength=wavelength, labels=labels, model=model)
 
-print("Normalization completed!")
+if verbose:
+    print("Normalization completed!")

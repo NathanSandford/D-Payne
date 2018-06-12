@@ -1,6 +1,5 @@
 '''
 Code to generate wavelenth template for DEIMOS.
-It really should take into account DEIMOS's LSF.
 '''
 
 import numpy as np

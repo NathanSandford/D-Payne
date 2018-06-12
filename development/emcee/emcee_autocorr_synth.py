@@ -1,8 +1,5 @@
 import numpy as np
-from astropy import units as u
-from astropy.coordinates import SkyCoord
 import emcee
-import multiprocessing
 from multiprocessing import Pool
 import sys
 import os
@@ -32,7 +29,7 @@ temp.close()
 
 # Select "Typical RGB" spectra
 j = 0
-real_labels = np.append(labels[j],0.0)
+real_labels = np.append(labels[j], 0.0)
 real_spec = norm_spectra[j]
 
 # Add Noise
@@ -49,16 +46,17 @@ p0 = [0, 0, 0, 0, 0, 0, 0, 0, 5000, 4, 0]
 
 # Fit spectrum
 popt, pcov, model_spec \
-    = fitting.fit_normalized_spectrum_single_star_model(norm_spec = data_spec,
-                                                        spec_err = spec_err,
-                                                        NN_coeffs = NN_coeffs,
-                                                        p0 = None, num_p0 = 1)
+    = fitting.fit_normalized_spectrum_single_star_model(norm_spec=data_spec,
+                                                        spec_err=spec_err,
+                                                        NN_coeffs=NN_coeffs,
+                                                        p0=None, num_p0=1)
+
 
 # Define Likelihood function and priors
 def lnlike(labels, data_spec, data_err):
-    model_spec = NN.get_spectrum_from_neural_net(labels=labels, NN_coeffs=NN_coeffs)
-    inv_sigma2 = 1.0/data_err
-    lnchi2 = -0.5 * (np.sum((data_spec - model_spec)**2 * inv_sigma2))
+    model_spec = NN.get_spectrum_from_neural_net(labels=labels,
+                                                 NN_coeffs=NN_coeffs)
+    lnchi2 = -0.5 * (np.sum((data_spec - model_spec)**2 / data_err))
     return(lnchi2)
 
 
@@ -94,27 +92,30 @@ nwalkers = 128
 filename = '/global/scratch/nathan_sandford/emcee/chain_synth.h5'
 backend = emcee.backends.HDFBackend(filename)
 
-try: # If chain has already been run for a while
-    previous_autocorr = np.load('/global/scratch/nathan_sandford/emcee/autocorr_synth.npy')
+try:  # If chain has already been run for a while
+    previous_autocorr\
+        = np.load('/global/scratch/nathan_sandford/emcee/autocorr_synth.npy')
     extension = np.zeros(nsteps // 100)
     autocorr = np.concatenate((previous_autocorr, extension))
     previous_steps = len(backend.get_chain())
     p0 = backend.get_last_sample()[0]
     old_tau = backend.get_autocorr_time(tol=0)
     print('Loaded chain with %i steps run' % previous_steps)
-except FileNotFoundError: # If chain is being run for the first time
+except FileNotFoundError:  # If chain is being run for the first time
     autocorr = np.empty(nsteps // 100)
     previous_steps = 0
     backend.reset(nwalkers, ndim)
-    p0 = popt + 1e-2*np.random.uniform(low=-1.0, high=1.0, size=(nwalkers, ndim))  # Initialize at best fit from above
+    p0 = popt + 1e-2*np.random.uniform(low=-1.0, high=1.0,
+                                       size=(nwalkers, ndim))
     old_tau = np.inf
     print('Initialized new chain')
 index = previous_steps // 100
 
 
-
 with Pool() as pool:
-    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data_spec, spec_err), backend=backend, pool=pool)
+    sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
+                                    args=(data_spec, spec_err),
+                                    backend=backend, pool=pool)
 
     for sample in sampler.sample(p0, iterations=nsteps, progress=True):
         # Only check convergence every 100 steps
@@ -138,8 +139,10 @@ with Pool() as pool:
 
 np.save('/global/scratch/nathan_sandford/emcee/autocorr_synth.npy', autocorr)
 os.system('cp /global/scratch/nathan_sandford/emcee/autocorr_synth.npy '
-          + '/global/scratch/nathan_sandford/emcee/autocorr_synth_%i.npy' % (previous_steps + nsteps))
+          + '/global/scratch/nathan_sandford/emcee/autocorr_synth_%i.npy'
+          % (previous_steps + nsteps))
 os.system('cp /global/scratch/nathan_sandford/emcee/chain_synth.h5 '
-          + '/global/scratch/nathan_sandford/emcee/chain_synth_%i.h5' % (previous_steps + nsteps))
+          + '/global/scratch/nathan_sandford/emcee/chain_synth_%i.h5'
+          % (previous_steps + nsteps))
 
 print('Now completed %i iterations' % (previous_steps + nsteps))
