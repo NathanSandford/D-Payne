@@ -84,13 +84,12 @@ def doppler_shift(wavelength, flux, RV):
     return(new_flux)
 
 
-def get_continuum_pixels(wavelength, normalized_spectra, cut=0.96):
+def get_continuum_pixels(wavelength, normalized_spectra, wavelength_template,
+                         cut=0.96):
     '''
     Finds continuum pixels on the standard wavelength grid by identifying
     continuum regions in a theoretically normalized spectrum.
     '''
-    # Load standard DEIMOS wavelength grid
-    wavelength_template = load_wavelength_array()
 
     # Identify continuum region in normalized spectrum
     temp = np.zeros(len(wavelength))
