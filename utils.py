@@ -118,10 +118,44 @@ def load_deimos_cont_pixels():
     return cont_pixels
 
 
-def get_deimos_continuum(spec, spec_err=None, wavelength=None,
-                         cont_pixels=None,
-                         wavelength_diff_matrix=None,
-                         verbose=False):
+def get_deimos_continuum_poly(spec, spec_err=None,
+                              wavelength=None,
+                              cont_pixels=None, bounds=[6250, 9500],
+                              deg=6, verbose=False):
+    '''
+    Approximate continuum using a polynomial
+    '''
+    # Load standard DEIMOS wavelength grid
+    if wavelength is None:
+        if verbose:
+            print('Loading wavelength grid...')
+        wavelength = load_wavelength_array()
+    # If no error given, assume 1 everywhere
+    if spec_err is None:
+        if verbose:
+            print('No errors given, assuming all are equal')
+        spec_err = np.ones(len(wavelength))
+    # Limit to continuum regions
+    if cont_pixels is not None:
+        wave = wavelength[cont_pixels]
+        spec = spec[cont_pixels]
+        spec_err = spec_err[cont_pixels]
+    else:
+        wave = wavelength
+    # Fitting regions
+    fit_reg = (wave > bounds[0]) & (wave < bounds[1]) \
+        & (spec > 0)
+    # Calculate Continuum
+    cont = np.polyfit(wave[fit_reg], spec[fit_reg],
+                      deg=deg, w=np.sqrt(spec_err[fit_reg])**-1)
+    cont = np.poly1d(cont)
+    return(cont(wavelength))
+
+
+def get_deimos_continuum_smooth(spec, spec_err=None, wavelength=None,
+                                cont_pixels=None,
+                                wavelength_diff_matrix=None,
+                                verbose=False):
     '''
     Approximate continuum as a smoothed version of the spectrum using only
     continuum regions. This is modeled after the method used in
