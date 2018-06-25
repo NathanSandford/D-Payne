@@ -146,8 +146,11 @@ def get_deimos_continuum_poly(spec, spec_err=None,
     fit_reg = (wave > bounds[0]) & (wave < bounds[1]) \
         & (spec > 0)
     # Calculate Continuum
-    cont = np.polyfit(wave[fit_reg], spec[fit_reg],
-                      deg=deg, w=np.sqrt(spec_err[fit_reg])**-1)
+    try:
+        cont = np.polyfit(wave[fit_reg], spec[fit_reg],
+                          deg=deg, w=np.sqrt(spec_err[fit_reg])**-1)
+    except TypeError:
+        cont = np.polyfit(wave[fit_reg], spec[fit_reg], deg=deg)
     cont = np.poly1d(cont)
     return(cont(wavelength))
 
