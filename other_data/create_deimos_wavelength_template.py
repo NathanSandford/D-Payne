@@ -17,6 +17,4 @@ while wavelength_now < lambda_max:
         wavelength_template.append(wavelength_now)
 wavelength_template = np.array(wavelength_template)
 
-wavelength_template =
-
 np.savez('deimos_wavelength.npz', wavelength=wavelength_template)

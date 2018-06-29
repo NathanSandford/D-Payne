@@ -146,11 +146,8 @@ def get_deimos_continuum_poly(spec, spec_err=None,
     fit_reg = (wave > bounds[0]) & (wave < bounds[1]) \
         & (spec > 0)
     # Calculate Continuum
-    try:
-        cont = np.polyfit(wave[fit_reg], spec[fit_reg],
-                          deg=deg, w=np.sqrt(spec_err[fit_reg])**-1)
-    except TypeError:
-        cont = np.polyfit(wave[fit_reg], spec[fit_reg], deg=deg)
+    cont = np.polyfit(wave[fit_reg], spec[fit_reg],
+                      deg=deg, w=np.sqrt(spec_err[fit_reg])**-1)
     cont = np.poly1d(cont)
     return(cont(wavelength))
 
@@ -275,15 +272,3 @@ def restore_mask_from_file(name):
         return(mask)
     except FileNotFoundError:
         print('No mask named %s' % name)
-
-
-def get_chi2_difference(norm_spec, spec_err, norm_model_A, norm_model_B):
-    '''
-    For model comparison. Returns chi2_modelA - chi2_modelB.
-    norm_model_A & B are normalized spectra predicted by two different models.
-    So e.g., if model A is more simple than model B (say, a single-star
-        vs a binary model), one would expect this to be positive.
-    '''
-    chi2_A = np.sum((norm_spec - norm_model_A)**2 / spec_err**2)
-    chi2_B = np.sum((norm_spec - norm_model_B)**2 / spec_err**2)
-    return chi2_A - chi2_B
